@@ -2,489 +2,858 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>سجلّ الحضور — عزيز</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+<title>صيانة سيارتي</title>
+<link rel="icon" href="data:," />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@700;800&display=swap');
-
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: 'Tajawal', sans-serif;
-    background: #F5F6F2;
-    color: #1B2430;
-    padding-bottom: 60px;
-  }
-  .font-display { font-family: 'Cairo', 'Tajawal', sans-serif; }
-
-  header {
-    background: #0B4F4C;
-    color: #fff;
-    text-align: center;
-    padding: 40px 20px 32px;
-    position: relative;
-  }
-  .data-btn {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    width: 40px;
-    height: 40px;
-    border-radius: 999px;
-    background: #126762;
-    border: 1px solid #2E8A83;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    cursor: pointer;
-    color: #fff;
-  }
-  .data-btn:hover { background: #158079; }
-  .eyebrow { color: #9FC7C0; font-size: 12px; letter-spacing: 2px; margin-bottom: 8px; }
-  .avatar {
-    width: 64px; height: 64px; border-radius: 999px;
-    background: #126762; border: 1px solid #2E8A83;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 12px; font-weight: 800; font-size: 24px;
-  }
-  .name-badge {
-    font-weight: 800; font-size: 24px; color: #000;
-    background: #fff; display: inline-block;
-    padding: 4px 16px; border-radius: 999px;
-  }
-  .tabs {
-    display: flex; gap: 4px; background: #0A4441;
-    border-radius: 12px; padding: 4px; margin: 24px auto 0; max-width: 320px;
-  }
-  .tab-btn {
-    flex: 1; padding: 10px; border-radius: 8px; border: none;
-    background: transparent; color: #B9D6D1; font-size: 14px; font-weight: 500;
-    font-family: inherit; cursor: pointer;
-  }
-  .tab-btn.active { background: #F5F6F2; color: #0B4F4C; }
-
-  main { max-width: 420px; margin: 24px auto 0; padding: 0 20px; }
-  .card {
-    background: #fff; border-radius: 12px; border: 1px solid #E4E6DF;
-    padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-  }
-  .card.center { text-align: center; }
-
-  label.field-label { font-size: 12px; color: #8A93A0; display: block; margin-bottom: 4px; }
-  input[type=date] {
-    border: 1px solid #D7DAD3; border-radius: 8px; padding: 6px 12px;
-    font-size: 14px; font-family: inherit; outline: none;
-  }
-  input[type=date]:focus { border-color: #0B4F4C; box-shadow: 0 0 0 3px rgba(11,79,76,0.15); }
-  .date-sub { font-size: 12px; color: #8A93A0; margin: 4px 0 24px; }
-
-  .status-row { display: flex; justify-content: center; gap: 12px; }
-  .status-btn {
-    width: 80px; height: 80px; border-radius: 16px; border: 2px solid #E4E6DF;
-    background: #fff; color: #9AA1AB; display: flex; align-items: center; justify-content: center;
-    font-family: 'Cairo', sans-serif; font-size: 20px; font-weight: 800; cursor: pointer;
-    transition: transform .12s ease;
-  }
-  .status-btn:active { transform: scale(.93); }
-  .status-btn.active-TC { background: #E7F1EC; border-color: #3C7A5D; color: #3C7A5D; }
-  .status-btn.active-RS { background: #FBF0E1; border-color: #C1791F; color: #C1791F; }
-  .status-btn.active-RC { background: #EAF0F8; border-color: #4A6FA5; color: #4A6FA5; }
-
-  .saved-flash { font-size: 12px; margin-top: 20px; color: #3C7A5D; opacity: 0; transition: opacity .2s; }
-  .saved-flash.show { opacity: 1; }
-
-  .cp-section { margin-top: 24px; padding-top: 20px; border-top: 1px dashed #D7DAD3; }
-  .cp-title { font-size: 12px; color: #8A93A0; margin-bottom: 12px; }
-  .cp-row { display: flex; justify-content: center; gap: 10px; direction: ltr; }
-  .cp-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .cp-num { font-size: 11px; font-weight: 700; color: #8A93A0; }
-  .cp-btn {
-    width: 48px; height: 48px; border-radius: 8px; border: 2px solid #E4E6DF;
-    background: #fff; color: #C7CCD3; font-size: 18px; font-weight: 700; cursor: pointer;
-  }
-  .cp-btn.active { background: #E7F1EC; border-color: #3C7A5D; color: #3C7A5D; }
-  .cp-total {
-    margin-top: 16px; background: #F5F6F2; border-radius: 8px; padding: 12px 16px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .cp-total span:first-child { font-size: 14px; font-weight: 500; color: #5B6470; }
-  .cp-total span:last-child { font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 18px; color: #0B4F4C; }
-
-  .summary-box { display: flex; align-items: center; justify-content: space-between; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; }
-  .summary-box.green { background: #E7F1EC; }
-  .summary-box.green span:first-child { font-size: 14px; font-weight: 500; color: #3C7A5D; }
-  .summary-box.green span:last-child { font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 18px; color: #3C7A5D; }
-  .summary-box.red { background: #FBEAE8; }
-  .summary-box.red span:first-child { font-size: 14px; font-weight: 500; color: #B5473F; }
-  .summary-box.red span:last-child { font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 18px; color: #B5473F; }
-
-  .empty-state { text-align: center; padding: 40px 0; color: #8A93A0; }
-  .empty-state .emoji { font-size: 32px; margin-bottom: 8px; }
-  .empty-state p.title { font-size: 14px; font-weight: 500; margin: 0 0 4px; }
-  .empty-state p.sub { font-size: 12px; margin: 0; }
-
-  .ledger-row { border-bottom: 1px dashed #D7DAD3; padding: 10px 0; }
-  .ledger-row:last-child { border-bottom: none; }
-  .ledger-row-flex { display: flex; align-items: center; justify-content: space-between; }
-  .pill { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
-
-  .year-btn {
-    width: 100%; display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 12px; background: #FAFAF8; border-radius: 8px; border: none;
-    font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; margin-bottom: 4px;
-  }
-
-  .monthly-header {
-    display: flex; align-items: center; justify-content: space-between;
-    background: #0B4F4C; border-radius: 8px; padding: 16px; margin-bottom: 16px;
-  }
-  .monthly-header span:first-child { font-size: 14px; font-weight: 500; color: #fff; }
-  .monthly-header span:last-child { font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 24px; color: #fff; }
-
-  .cp-mini-row { display: flex; gap: 6px; direction: ltr; margin-top: 6px; }
-  .cp-mini {
-    width: 24px; height: 24px; border-radius: 4px; font-size: 10px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center; background: #F5F6F2; color: #C7CCD3;
-  }
-  .cp-mini.active { background: #E7F1EC; color: #3C7A5D; }
-
-  /* Modal */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-    display: none; align-items: center; justify-content: center; padding: 0 20px; z-index: 40;
-  }
-  .modal-overlay.show { display: flex; }
-  .modal-box {
-    background: #fff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    width: 100%; max-width: 420px; max-height: 80vh; display: flex; flex-direction: column;
-    border: 1px solid #E4E6DF;
-  }
-  .modal-head {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 20px 12px; border-bottom: 1px solid #E4E6DF;
-  }
-  .modal-head-title { display: flex; align-items: center; gap: 8px; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 16px; }
-  .modal-close { background: none; border: none; font-size: 20px; font-weight: 700; cursor: pointer; color: #1B2430; width: 28px; height: 28px; }
-  .modal-body { overflow-y: auto; padding: 12px 20px; flex: 1; }
-  .modal-body p { font-size: 12px; color: #8A93A0; margin: 0 0 12px; }
-  table { width: 100%; font-size: 14px; border-collapse: collapse; }
-  th { text-align: right; font-size: 12px; color: #8A93A0; font-weight: 500; padding: 6px 0; border-bottom: 1px solid #E4E6DF; }
-  td { padding: 8px 0; border-bottom: 1px dashed #D7DAD3; }
-  .modal-foot { padding: 12px 20px; border-top: 1px solid #E4E6DF; background: #FAFAF8; border-radius: 0 0 16px 16px; }
-  .modal-foot p { font-size: 11px; color: #8A93A0; margin: 0; word-break: break-all; }
+  html, body { margin: 0; padding: 0; background: #120F0C; }
 </style>
 </head>
 <body>
-<div id="app"></div>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useCallback } = React;
 
-<script>
-(function () {
-  const EMPLOYEE_NAME = "عزيز";
-  const STATUS = {
-    TC: { label: "TC", css: "active-TC" },
-    RS: { label: "RS", css: "active-RS" },
-    RC: { label: "RC", css: "active-RC" },
+const FONT_LINK_ID = "car-maintenance-fonts";
+
+function ensureFonts() {
+  if (typeof document === "undefined") return;
+  if (document.getElementById(FONT_LINK_ID)) return;
+  const link = document.createElement("link");
+  link.id = FONT_LINK_ID;
+  link.rel = "stylesheet";
+  link.href =
+    "https://fonts.googleapis.com/css2?family=Cairo:wght@600;800;900&family=Tajawal:wght@400;500;700&display=swap";
+  document.head.appendChild(link);
+}
+
+const STORAGE_KEY = "car-maintenance-state-v1";
+
+const DEFAULT_ITEMS = [
+  {
+    id: "engine-oil",
+    name: "زيت المحرك وفلتره",
+    icon: "oil",
+    intervalKm: 10000,
+    intervalYears: null,
+    lastKm: "",
+    lastDate: "",
+    history: [],
+  },
+  {
+    id: "air-filter",
+    name: "فلتر الهواء",
+    icon: "air",
+    intervalKm: 15000,
+    intervalYears: null,
+    lastKm: "",
+    lastDate: "",
+    history: [],
+  },
+  {
+    id: "fuel-filter",
+    name: "فلتر البنزين",
+    icon: "fuel",
+    intervalKm: 30000,
+    intervalYears: 5,
+    lastKm: "",
+    lastDate: "",
+    history: [],
+  },
+  {
+    id: "timing-belt",
+    name: "حزام التوزيع",
+    icon: "belt",
+    intervalKm: 70000,
+    intervalYears: 5,
+    lastKm: "",
+    lastDate: "",
+    history: [],
+  },
+  {
+    id: "brake-pads",
+    name: "وسادات الفرامل",
+    icon: "brake",
+    intervalKm: 30000,
+    intervalYears: null,
+    lastKm: "",
+    lastDate: "",
+    history: [],
+  },
+];
+
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function formatKm(n) {
+  const v = Math.round(Number(n) || 0);
+  return v.toLocaleString("en-US");
+}
+
+function formatDateAr(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso + "T00:00:00");
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("ar-EG-u-nu-latn", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+// --- Icons (simple line icons, stroke-based, matches gauge/dashboard mood) ---
+function Icon({ name, className }) {
+  const common = {
+    className,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.6,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
   };
-  const CHECKPOINT_WEIGHTS = [20, 40, 40, 60];
+  switch (name) {
+    case "oil":
+      return (
+        <svg {...common}>
+          <path d="M8 3h8l1.5 3.5H6.5L8 3z" />
+          <path d="M6.5 6.5h11L19 20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20l1.5-13.5z" />
+          <path d="M9.5 11.5c-1 1.2-1 2.4 0 3.2 1 .8 1 1.8 0 2.8" />
+          <path d="M14.5 11.5c-1 1.2-1 2.4 0 3.2 1 .8 1 1.8 0 2.8" />
+        </svg>
+      );
+    case "filter":
+      return (
+        <svg {...common}>
+          <path d="M4 5h16l-6 7v6l-4 2v-8L4 5z" />
+        </svg>
+      );
+    case "fuel":
+      return (
+        <svg {...common}>
+          <path d="M5 20V6a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v14" />
+          <path d="M4 20h11" />
+          <path d="M14 9h2l3 3v5.5a1.5 1.5 0 0 1-3 0V15h-2" />
+          <circle cx="8.5" cy="9.5" r="1.5" />
+        </svg>
+      );
+    case "air":
+      return (
+        <svg {...common}>
+          <path d="M3 8h11a2.5 2.5 0 1 0-2.5-2.5" />
+          <path d="M3 12h15a2.5 2.5 0 1 1-2.5 2.5" />
+          <path d="M3 16h9a2.5 2.5 0 1 1-2.5 2.5" />
+        </svg>
+      );
+    case "belt":
+      return (
+        <svg {...common}>
+          <circle cx="7" cy="12" r="3.2" />
+          <circle cx="17" cy="8" r="2.4" />
+          <circle cx="17" cy="16" r="2.4" />
+          <path d="M9.3 10.3 14.8 8.8" />
+          <path d="M9.3 13.7 14.8 15.2" />
+          <path d="M17 5.6c1.8.4 3 1.4 3 2.4s-1.2 2-3 2.4" />
+        </svg>
+      );
+    case "brake":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="8.5" />
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 3.5v3" />
+          <path d="M12 17.5v3" />
+          <path d="M20.5 12h-3" />
+          <path d="M6.5 12h-3" />
+        </svg>
+      );
+    case "mail":
+      return (
+        <svg {...common}>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="m4 7 8 6 8-6" />
+        </svg>
+      );
+    case "gauge":
+      return (
+        <svg {...common}>
+          <path d="M12 3a9 9 0 0 0-9 9c0 2 .6 3.8 1.6 5.3" />
+          <path d="M12 3a9 9 0 0 1 9 9c0 2-.6 3.8-1.6 5.3" />
+          <path d="M12 12l4-3" />
+          <circle cx="12" cy="12" r="1.4" fill="currentColor" />
+        </svg>
+      );
+    case "check":
+      return (
+        <svg {...common}>
+          <path d="M20 6L9 17l-5-5" />
+        </svg>
+      );
+    case "warn":
+      return (
+        <svg {...common}>
+          <path d="M12 3l10 18H2L12 3z" />
+          <path d="M12 10v4" />
+          <circle cx="12" cy="17.3" r="0.15" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
 
-  // ---------- persistence (localStorage instead of Claude's window.storage) ----------
-  function loadJSON(key, fallback) {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : fallback;
-    } catch (e) {
-      return fallback;
-    }
-  }
-  function saveJSON(key, value) {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch (e) {
-      console.error("فشل الحفظ", e);
-    }
+// --- Gauge: semicircular arc, 0 (just changed) -> 100 (due) ---
+const GAUGE_ORANGE_KM = 2000; // remaining <= this starts the orange zone
+const GAUGE_RED_KM = 500; // remaining <= this starts the red zone
+
+const GAUGE_COLORS = {
+  good: "#3FA76C",
+  warn: "#D9A54A",
+  danger: "#C1443B",
+};
+
+// Semicircular gauge: a single progress arc, colored to match the item's
+// current zone (green / orange / red) per the same km thresholds used
+// elsewhere, with a needle marking the exact position.
+function Gauge({ percent, status }) {
+  const clamped = Math.max(0, Math.min(100, percent));
+  const radius = 54;
+  const circumference = Math.PI * radius; // half circle path length
+  const dash = (clamped / 100) * circumference;
+  const color = GAUGE_COLORS[status] || GAUGE_COLORS.good;
+
+  return (
+    <svg viewBox="0 0 140 80" className="w-full h-auto overflow-visible">
+      <path
+        d="M 10 74 A 54 54 0 0 1 130 74"
+        fill="none"
+        stroke="#3E3648"
+        strokeWidth="10"
+        strokeLinecap="round"
+      />
+      <path
+        d="M 10 74 A 54 54 0 0 1 130 74"
+        fill="none"
+        stroke={color}
+        strokeWidth="10"
+        strokeLinecap="round"
+        strokeDasharray={`${dash} ${circumference}`}
+        style={{ transition: "stroke-dasharray 700ms ease, stroke 400ms ease" }}
+      />
+      {/* needle */}
+      <g
+        style={{
+          transformOrigin: "70px 74px",
+          transform: `rotate(${-90 + (clamped / 100) * 180}deg)`,
+          transition: "transform 700ms ease",
+        }}
+      >
+        <line x1="70" y1="74" x2="70" y2="26" stroke="#F3ECDF" strokeWidth="2.5" strokeLinecap="round" />
+        <circle cx="70" cy="74" r="5" fill="#F3ECDF" stroke="#18141C" strokeWidth="1.5" />
+      </g>
+    </svg>
+  );
+}
+
+function statusFor(remainingKm, remainingDays) {
+  const timeDue = remainingDays != null && remainingDays <= 0;
+  if (remainingKm <= GAUGE_RED_KM || timeDue) return "danger";
+  if (remainingKm <= GAUGE_ORANGE_KM) return "warn";
+  return "good";
+}
+
+function daysBetween(fromISO, toDate) {
+  const from = new Date(fromISO + "T00:00:00");
+  if (Number.isNaN(from.getTime())) return null;
+  const ms = toDate.setHours(0, 0, 0, 0) - from.setHours(0, 0, 0, 0);
+  return Math.floor(ms / (1000 * 60 * 60 * 24));
+}
+
+function addYearsISO(fromISO, years) {
+  const d = new Date(fromISO + "T00:00:00");
+  if (Number.isNaN(d.getTime())) return null;
+  d.setFullYear(d.getFullYear() + years);
+  return d;
+}
+
+const statusLabel = {
+  good: "بحالة جيدة",
+  warn: "قاربت على الاستحقاق",
+  danger: "مستحقة الآن",
+};
+
+// Build an .ics reminder file so the person can add it to their phone's
+// calendar/reminders app with one tap — the artifact can't reach the
+// device's calendar directly, so this hands the reminder off as a file.
+function buildReminderICS({ itemName, remainingKm, remainingDays, currentKm }) {
+  const pad = (n) => String(n).padStart(2, "0");
+  const now = new Date();
+  const stamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(
+    now.getUTCDate()
+  )}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}Z`;
+  const uid = `car-maint-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@car-maintenance`;
+  const summary = `تذكير صيانة: ${itemName} تقترب من الاستحقاق`;
+  const kmDue = remainingKm <= 0;
+  const timeDue = remainingDays != null && remainingDays <= 0;
+  let description;
+  if (kmDue || timeDue) {
+    description = `موعد ${itemName} مستحق الآن. قراءة العداد الحالية: ${formatKm(currentKm)} كم.`;
+  } else {
+    const parts = [`تبقّى ${formatKm(remainingKm)} كم`];
+    if (remainingDays != null) parts.push(`أو ${remainingDays} يومًا`);
+    description = `${parts.join(" ")} على موعد ${itemName} (أيهما أقرب). قراءة العداد الحالية: ${formatKm(
+      currentKm
+    )} كم.`;
   }
 
-  // ---------- state ----------
-  let records = loadJSON("aziz-attendance-records", {});     // { date: "TC"|"RS"|"RC" }
-  let checkpoints = loadJSON("aziz-checkpoints", {});         // { date: [bool,bool,bool,bool] }
-  let tab = "today";
-  let selectedDate = new Date().toISOString().slice(0, 10);
-  let expandedYear = null;
-  let showDataModal = false;
-  let savedFlashTimer = null;
-  let showFlash = false;
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Car Maintenance//AR//EN",
+    "CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT",
+    `UID:${uid}`,
+    `DTSTAMP:${stamp}`,
+    `DTSTART:${stamp}`,
+    `DTEND:${stamp}`,
+    `SUMMARY:${summary}`,
+    `DESCRIPTION:${description}`,
+    "BEGIN:VALARM",
+    "TRIGGER:PT0M",
+    "ACTION:DISPLAY",
+    `DESCRIPTION:${summary}`,
+    "END:VALARM",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
 
-  // ---------- helpers ----------
-  function formatArabicDate(isoDate) {
-    const d = new Date(isoDate + "T00:00:00");
-    return d.toLocaleDateString("ar-EG", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  return ics;
+}
+
+function downloadReminder(item, remainingKm, remainingDays, currentKm) {
+  const ics = buildReminderICS({ itemName: item.name, remainingKm, remainingDays, currentKm });
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${item.id}-تذكير.ics`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function MaintenanceCard({ item, currentKm, onEdit }) {
+  const [editing, setEditing] = useState(false);
+  const [draftKm, setDraftKm] = useState(item.lastKm);
+  const [draftDate, setDraftDate] = useState(item.lastDate || todayISO());
+  const [draftInterval, setDraftInterval] = useState(item.intervalKm);
+  const [draftYears, setDraftYears] = useState(item.intervalYears ?? "");
+
+  useEffect(() => {
+    setDraftKm(item.lastKm);
+    setDraftDate(item.lastDate || todayISO());
+    setDraftInterval(item.intervalKm);
+    setDraftYears(item.intervalYears ?? "");
+  }, [item.lastKm, item.lastDate, item.intervalKm, item.intervalYears]);
+
+  const sinceChange = Math.max(0, (Number(currentKm) || 0) - (Number(item.lastKm) || 0));
+  const remainingKm = item.intervalKm - sinceChange;
+  const kmPercentUsed = item.intervalKm > 0 ? (sinceChange / item.intervalKm) * 100 : 0;
+
+  const hasYears = !!item.intervalYears;
+  const daysSince = hasYears && item.lastDate ? daysBetween(item.lastDate, new Date()) : null;
+  const totalDaysAllowed = hasYears ? item.intervalYears * 365 : null;
+  const remainingDays =
+    hasYears && daysSince != null ? totalDaysAllowed - daysSince : null;
+  const timePercentUsed =
+    hasYears && daysSince != null ? (daysSince / totalDaysAllowed) * 100 : null;
+  const dueDate = hasYears && item.lastDate ? addYearsISO(item.lastDate, item.intervalYears) : null;
+
+  const percentUsed = timePercentUsed != null ? Math.max(kmPercentUsed, timePercentUsed) : kmPercentUsed;
+  const status = statusFor(remainingKm, remainingDays);
+
+  const statusColorClasses = {
+    good: "text-[#3FA76C] bg-[#3FA76C]/10 border-[#3FA76C]/30",
+    warn: "text-[#D9A54A] bg-[#D9A54A]/10 border-[#D9A54A]/30",
+    danger: "text-[#C1443B] bg-[#C1443B]/10 border-[#C1443B]/30",
+  };
+
+  const cardBgClasses = {
+    good: "bg-[#3FA76C]/[0.06] border-[#3FA76C]/25",
+    warn: "bg-[#D9A54A]/[0.07] border-[#D9A54A]/30",
+    danger: "bg-[#C1443B]/[0.08] border-[#C1443B]/35",
+  };
+
+  const MAX_HISTORY = 10;
+
+  function pushToHistory(prevHistory) {
+    // Only log a history entry if there was a real previous record to keep.
+    if (item.lastKm === "" || item.lastKm == null) return prevHistory || [];
+    const entry = { km: item.lastKm, date: item.lastDate };
+    return [entry, ...(prevHistory || [])].slice(0, MAX_HISTORY);
   }
-  function computeDayTotal(dayArr) {
-    return (dayArr || []).reduce((sum, active, i) => sum + (active ? CHECKPOINT_WEIGHTS[i] : 0), 0);
-  }
-  function sortedDates() {
-    return Object.keys(records).sort((a, b) => (a < b ? 1 : -1));
-  }
-  function groupedByYear() {
-    const groups = {};
-    sortedDates().forEach((d) => {
-      const y = d.slice(0, 4);
-      if (!groups[y]) groups[y] = [];
-      groups[y].push(d);
+
+  function save() {
+    const newLastKm = draftKm === "" ? "" : Number(draftKm) || 0;
+    const changed = newLastKm !== item.lastKm || draftDate !== item.lastDate;
+    onEdit(item.id, {
+      lastKm: newLastKm,
+      lastDate: draftDate,
+      intervalKm: Number(draftInterval) || item.intervalKm,
+      intervalYears: draftYears === "" ? null : Number(draftYears) || null,
+      history: changed ? pushToHistory(item.history) : item.history,
     });
-    return groups;
-  }
-  function countedDays() {
-    return sortedDates().filter((d) => records[d] !== "RC" && records[d] !== "RS").length;
-  }
-  function missingDays() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const todayDay = now.getDate();
-    let missing = 0;
-    for (let day = 1; day <= todayDay; day++) {
-      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-      if (!records[dateStr]) missing++;
-    }
-    return missing;
-  }
-  function monthlyCheckpointDates() {
-    const key = selectedDate.slice(0, 7);
-    return Object.keys(checkpoints)
-      .filter((d) => d.startsWith(key) && (checkpoints[d] || []).some(Boolean))
-      .sort();
-  }
-  function monthlyTotal() {
-    return monthlyCheckpointDates().reduce((sum, d) => sum + computeDayTotal(checkpoints[d]), 0);
+    setEditing(false);
   }
 
-  // ---------- actions ----------
-  function setStatus(date, status) {
-    if (records[date] === status) delete records[date];
-    else records[date] = status;
-    saveJSON("aziz-attendance-records", records);
-    showFlash = true;
-    render();
-    clearTimeout(savedFlashTimer);
-    savedFlashTimer = setTimeout(() => { showFlash = false; render(); }, 900);
-  }
-  function toggleCheckpoint(date, index) {
-    const current = checkpoints[date] || [false, false, false, false];
-    const updated = current.map((v, i) => (i === index ? !v : v));
-    checkpoints[date] = updated;
-    saveJSON("aziz-checkpoints", checkpoints);
-    render();
+  function markChangedToday() {
+    const km = Number(currentKm) || 0;
+    onEdit(item.id, { lastKm: km, lastDate: todayISO(), history: pushToHistory(item.history) });
   }
 
-  // ---------- render ----------
-  function render() {
-    const app = document.getElementById("app");
-    app.innerHTML = `
-      <header>
-        <button class="data-btn" onclick="App.openModal()" title="عرض ملف تخزين البيانات">🗄️</button>
-        <div class="eyebrow">سجلّ الحضور</div>
-        <div class="avatar" style="margin-bottom:0;">${EMPLOYEE_NAME.charAt(0)}</div>
-        <div class="tabs">
-          <button class="tab-btn ${tab === "today" ? "active" : ""}" onclick="App.setTab('today')">تسجيل</button>
-          <button class="tab-btn ${tab === "history" ? "active" : ""}" onclick="App.setTab('history')">السجل</button>
-          <button class="tab-btn ${tab === "monthly" ? "active" : ""}" onclick="App.setTab('monthly')">الشهري</button>
-        </div>
-      </header>
-      <main>
-        ${tab === "today" ? renderToday() : ""}
-        ${tab === "history" ? renderHistory() : ""}
-        ${tab === "monthly" ? renderMonthly() : ""}
-      </main>
-      ${renderModal()}
-    `;
-  }
-
-  function renderToday() {
-    const dc = checkpoints[selectedDate] || [false, false, false, false];
-    const total = computeDayTotal(dc);
-    const currentStatus = records[selectedDate];
-    return `
-      <div class="card center">
-        <label class="field-label">التاريخ</label>
-        <input type="date" value="${selectedDate}" onchange="App.setDate(this.value)" />
-        <div class="date-sub">${formatArabicDate(selectedDate)}</div>
-        <div class="status-row">
-          ${Object.keys(STATUS).map((key) => {
-            const s = STATUS[key];
-            const active = currentStatus === key ? s.css : "";
-            return `<button class="status-btn ${active}" onclick="App.setStatus('${key}')">${s.label}</button>`;
-          }).join("")}
-        </div>
-        <div class="saved-flash ${showFlash ? "show" : ""}">تم الحفظ ✓</div>
-        <div class="cp-section">
-          <div class="cp-title">نقاط التحقق</div>
-          <div class="cp-row">
-            ${dc.map((active, i) => `
-              <div class="cp-item">
-                <span class="cp-num">${i + 1}</span>
-                <button class="cp-btn ${active ? "active" : ""}" onclick="App.toggleCp(${i})">${active ? "✓" : ""}</button>
-              </div>
-            `).join("")}
+  return (
+    <div
+      className={`relative rounded-2xl border p-5 flex flex-col gap-4 shadow-lg shadow-black/25 transition-colors duration-500 ${cardBgClasses[status]}`}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="shrink-0 w-10 h-10 rounded-xl bg-[#2A2430] border border-[#3A3340] flex items-center justify-center text-[#D9A54A]">
+            <Icon name={item.icon} className="w-5 h-5" />
           </div>
-          <div class="cp-total">
-            <span>إجمالي التنشيط اليومي</span>
-            <span>${total}</span>
+          <div>
+            <h3 className="font-[Cairo] font-bold text-[#F3ECDF] text-base leading-tight">
+              {item.name}
+            </h3>
+            <p className="text-xs text-[#A79C93] font-[Tajawal] mt-0.5">
+              كل {formatKm(item.intervalKm)} كم
+              {hasYears ? ` أو كل ${item.intervalYears} سنوات (أيهما أقرب)` : ""}
+            </p>
           </div>
+        </div>
+        <span
+          className={`text-[11px] font-[Tajawal] font-bold px-2.5 py-1 rounded-full border ${statusColorClasses[status]} flex items-center gap-1`}
+        >
+          <Icon name={status === "good" ? "check" : "warn"} className="w-3 h-3" />
+          {statusLabel[status]}
+        </span>
+      </div>
+
+      <Gauge percent={percentUsed} status={status} />
+
+      <div className="grid grid-cols-2 gap-3 text-center -mt-2">
+        <div>
+          <p
+            className={`text-[10px] font-[Tajawal] ${
+              remainingKm <= 0 ? "text-[#C1443B] font-bold" : "text-[#A79C93]"
+            }`}
+          >
+            {remainingKm <= 0 ? "تجاوز الموعد بـ" : "المتبقي حتى التغيير"}
+          </p>
+          <p
+            className={`font-[Cairo] font-bold text-lg ${
+              remainingKm <= 0 ? "text-[#C1443B]" : "text-[#F3ECDF]"
+            }`}
+          >
+            {formatKm(Math.abs(remainingKm))}{" "}
+            <span className={`text-xs font-[Tajawal] ${remainingKm <= 0 ? "text-[#C1443B]" : "text-[#A79C93]"}`}>
+              كم
+            </span>
+          </p>
+        </div>
+        <div>
+          <p className="text-[10px] text-[#A79C93] font-[Tajawal]">قُطع منذ آخر تغيير</p>
+          <p className="font-[Cairo] font-bold text-[#F3ECDF] text-lg">
+            {formatKm(sinceChange)} <span className="text-xs text-[#A79C93] font-[Tajawal]">كم</span>
+          </p>
         </div>
       </div>
-    `;
-  }
 
-  function renderHistory() {
-    const dates = sortedDates();
-    const groups = groupedByYear();
-    const years = Object.keys(groups).sort((a, b) => b - a);
-    let html = `<div class="card">`;
-    if (dates.length > 0) {
-      html += `
-        <div class="summary-box green">
-          <span>الأيام المحتسبة (بدون RC وRS)</span>
-          <span>${countedDays()}</span>
+      {hasYears && (
+        <div className="text-xs font-[Tajawal] text-center -mt-2">
+          {dueDate ? (
+            <span className={remainingDays <= 0 ? "text-[#C1443B] font-bold" : "text-[#A79C93]"}>
+              الموعد الزمني: {formatDateAr(dueDate.toISOString().slice(0, 10))}
+              {remainingDays != null && remainingDays <= 0 &&
+                ` (متجاوَز بـ ${Math.abs(remainingDays)} يوم)`}
+            </span>
+          ) : (
+            <span className="text-[#A79C93]">أدخل تاريخ آخر تغيير لحساب الموعد الزمني</span>
+          )}
         </div>
-        <div class="summary-box red">
-          <span>أيام بدون بيانات (هذا الشهر)</span>
-          <span>${missingDays()}</span>
-        </div>
-      `;
-    }
-    if (dates.length === 0) {
-      html += `
-        <div class="empty-state">
-          <div class="emoji">📋</div>
-          <p class="title">لا يوجد سجل حضور بعد</p>
-          <p class="sub">ابدأ بالتسجيل من تبويب «تسجيل».</p>
-        </div>
-      `;
-    } else {
-      years.forEach((year) => {
-        const isOpen = expandedYear === year || years.length === 1;
-        html += `<div style="margin-bottom:8px;">`;
-        if (years.length > 1) {
-          html += `<button class="year-btn" onclick="App.toggleYear('${year}')">${year}<span>${isOpen ? "▲" : "▼"}</span></button>`;
-        }
-        if (isOpen) {
-          groups[year].forEach((date) => {
-            const s = STATUS[records[date]];
-            if (!s) return;
-            html += `
-              <div class="ledger-row">
-                <div class="ledger-row-flex">
-                  <span style="font-size:14px;">${formatArabicDate(date)}</span>
-                  <span class="pill" style="background:${statusBg(records[date])};color:${statusColor(records[date])};">${s.label}</span>
-                </div>
-              </div>
-            `;
-          });
-        }
-        html += `</div>`;
-      });
-    }
-    html += `</div>`;
-    return html;
-  }
+      )}
 
-  function renderMonthly() {
-    const dates = monthlyCheckpointDates();
-    let html = `
-      <div class="card">
-        <div class="monthly-header">
-          <span>إجمالي التنشيط الشهري</span>
-          <span>${monthlyTotal()}</span>
-        </div>
-        <div style="font-size:12px;color:#8A93A0;margin-bottom:12px;">تفاصيل التنشيط اليومي</div>
-    `;
-    if (dates.length === 0) {
-      html += `
-        <div class="empty-state">
-          <div class="emoji">🗓️</div>
-          <p class="title">لا يوجد تنشيط مسجّل هذا الشهر</p>
-          <p class="sub">فعّل نقاط التحقق من تبويب «تسجيل».</p>
-        </div>
-      `;
-    } else {
-      dates.forEach((date) => {
-        const dc = checkpoints[date] || [];
-        const total = computeDayTotal(dc);
-        html += `
-          <div class="ledger-row">
-            <div class="ledger-row-flex" style="margin-bottom:6px;">
-              <span style="font-size:14px;">${formatArabicDate(date)}</span>
-              <span class="pill" style="background:#E7F1EC;color:#3C7A5D;">${total}</span>
-            </div>
-            <div class="cp-mini-row">
-              ${dc.map((active, i) => `<span class="cp-mini ${active ? "active" : ""}">${i + 1}</span>`).join("")}
-            </div>
-          </div>
-        `;
-      });
-    }
-    html += `</div>`;
-    return html;
-  }
-
-  function renderModal() {
-    const dates = sortedDates();
-    let rows = "";
-    dates.forEach((date) => {
-      const s = STATUS[records[date]];
-      if (!s) return;
-      rows += `
-        <tr>
-          <td>${date}</td>
-          <td><span class="pill" style="background:${statusBg(records[date])};color:${statusColor(records[date])};">${s.label}</span></td>
-        </tr>
-      `;
-    });
-    return `
-      <div class="modal-overlay ${showDataModal ? "show" : ""}" onclick="App.closeModal(event)">
-        <div class="modal-box" onclick="event.stopPropagation()">
-          <div class="modal-head">
-            <div class="modal-head-title"><span>🗄️</span><span>ملف تخزين البيانات</span></div>
-            <button class="modal-close" onclick="App.closeModal()">✕</button>
-          </div>
-          <div class="modal-body">
-            <p>عدد الأيام المحتسبة (بدون RC وRS): <b style="color:#3C7A5D;">${countedDays()}</b></p>
-            <p>أيام بدون بيانات (هذا الشهر حتى اليوم): <b style="color:#B5473F;">${missingDays()}</b></p>
-            ${dates.length === 0
-              ? `<p style="text-align:center;padding:24px 0;">لا توجد بيانات محفوظة بعد.</p>`
-              : `<table><thead><tr><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>${rows}</tbody></table>`
-            }
-          </div>
-          <div class="modal-foot">
-            <p>مفتاح التخزين: <code>aziz-attendance-records</code> / <code>aziz-checkpoints</code></p>
-          </div>
-        </div>
+      <div className="text-xs text-[#A79C93] font-[Tajawal] border-t border-[#3A3340] pt-3 flex items-center justify-between">
+        <span>
+          آخر تغيير:{" "}
+          <span className="text-[#D8CFC3]">
+            {item.lastKm === "" || item.lastKm == null ? "—" : `${formatKm(item.lastKm)} كم`}
+          </span>
+        </span>
+        <span>{formatDateAr(item.lastDate)}</span>
       </div>
-    `;
+
+      {item.history && item.history.length > 0 && (
+        <div className="text-xs font-[Tajawal] -mt-2">
+          <p className="text-[#7A7168] mb-1">تغييرات سابقة</p>
+          <div className="flex flex-col gap-1">
+            {item.history.map((h, i) => (
+              <div
+                key={`${h.date}-${h.km}-${i}`}
+                className="flex items-center justify-between text-[#7A7168] opacity-80"
+              >
+                <span>{h.km === "" || h.km == null ? "—" : `${formatKm(h.km)} كم`}</span>
+                <span>{formatDateAr(h.date)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {(status === "warn" || status === "danger") && (
+        <button
+          onClick={() => downloadReminder(item, remainingKm, remainingDays, currentKm)}
+          className={`flex items-center justify-center gap-2 text-sm font-[Tajawal] font-bold rounded-xl border py-2.5 transition-colors ${
+            status === "danger"
+
+              ? "border-[#C1443B]/40 text-[#C1443B] hover:bg-[#C1443B]/10"
+              : "border-[#D9A54A]/40 text-[#D9A54A] hover:bg-[#D9A54A]/10"
+          }`}
+        >
+          <Icon name="warn" className="w-4 h-4" />
+          إرسال تذكير إلى تقويم الهاتف
+        </button>
+      )}
+
+      {!editing ? (
+        <div className="flex gap-2">
+          <button
+            onClick={markChangedToday}
+            disabled={currentKm === "" || currentKm == null}
+            className="flex-1 text-sm font-[Tajawal] font-bold rounded-xl bg-[#D9A54A] text-[#211D26] py-2.5 hover:bg-[#E5BD73] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {currentKm === "" || currentKm == null
+              ? "أدخل قراءة العداد أولًا"
+              : `تم التغيير اليوم بعداد ${formatKm(currentKm)} كم`}
+          </button>
+          <button
+            onClick={() => setEditing(true)}
+            className="text-sm font-[Tajawal] rounded-xl border border-[#3A3340] text-[#D8CFC3] px-3 hover:bg-[#2A2430] transition-colors"
+          >
+            تعديل
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2 bg-[#18141C] rounded-xl p-3 border border-[#3A3340]">
+          <label className="text-xs font-[Tajawal] text-[#A79C93] flex flex-col gap-1">
+            الكيلومترات عند آخر تغيير
+            <input
+              type="number"
+              inputMode="numeric"
+              value={draftKm}
+              onChange={(e) => setDraftKm(e.target.value)}
+              placeholder="مثال: 42000"
+              className="bg-[#211D26] border border-[#3A3340] rounded-lg px-3 py-2 text-[#F3ECDF] font-[Tajawal] text-sm focus:outline-none focus:ring-2 focus:ring-[#D9A54A]"
+            />
+          </label>
+          <label className="text-xs font-[Tajawal] text-[#A79C93] flex flex-col gap-1">
+            تاريخ آخر تغيير
+            <input
+              type="date"
+              value={draftDate}
+              onChange={(e) => setDraftDate(e.target.value)}
+              className="bg-[#211D26] border border-[#3A3340] rounded-lg px-3 py-2 text-[#F3ECDF] font-[Tajawal] text-sm focus:outline-none focus:ring-2 focus:ring-[#D9A54A]"
+            />
+          </label>
+          <label className="text-xs font-[Tajawal] text-[#A79C93] flex flex-col gap-1">
+            دورية التغيير (كم)
+            <input
+              type="number"
+              inputMode="numeric"
+              value={draftInterval}
+              onChange={(e) => setDraftInterval(e.target.value)}
+              className="bg-[#211D26] border border-[#3A3340] rounded-lg px-3 py-2 text-[#F3ECDF] font-[Tajawal] text-sm focus:outline-none focus:ring-2 focus:ring-[#D9A54A]"
+            />
+          </label>
+          <label className="text-xs font-[Tajawal] text-[#A79C93] flex flex-col gap-1">
+            الدورية الزمنية (سنوات) — اختياري
+            <input
+              type="number"
+              inputMode="numeric"
+              value={draftYears}
+              onChange={(e) => setDraftYears(e.target.value)}
+              placeholder="مثال: 5"
+              className="bg-[#211D26] border border-[#3A3340] rounded-lg px-3 py-2 text-[#F3ECDF] font-[Tajawal] text-sm focus:outline-none focus:ring-2 focus:ring-[#D9A54A]"
+            />
+          </label>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={save}
+              className="flex-1 text-sm font-[Tajawal] font-bold rounded-lg bg-[#3FA76C] text-[#18141C] py-2 hover:bg-[#4FBF80] transition-colors"
+            >
+              حفظ
+            </button>
+            <button
+              onClick={() => setEditing(false)}
+              className="flex-1 text-sm font-[Tajawal] rounded-lg border border-[#3A3340] text-[#D8CFC3] py-2 hover:bg-[#2A2430] transition-colors"
+            >
+              إلغاء
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function buildFullReportText(items, currentKm) {
+  const lines = [`تقرير صيانة السيارة — قراءة العداد: ${formatKm(currentKm)} كم`, ""];
+  items.forEach((it) => {
+    const since = Math.max(0, (Number(currentKm) || 0) - (Number(it.lastKm) || 0));
+    const remainingKm = it.intervalKm - since;
+    const lastKmText = it.lastKm === "" || it.lastKm == null ? "غير محدد" : `${formatKm(it.lastKm)} كم`;
+    const lastDateText = it.lastDate ? formatDateAr(it.lastDate) : "غير محدد";
+    let statusText;
+    if (remainingKm <= GAUGE_RED_KM) statusText = "مستحقة الآن أو قريبة جدًا";
+    else if (remainingKm <= GAUGE_ORANGE_KM) statusText = "قاربت على الاستحقاق";
+    else statusText = "بحالة جيدة";
+
+    lines.push(`• ${it.name}`);
+    lines.push(`  آخر تغيير: ${lastKmText} — ${lastDateText}`);
+    lines.push(
+      `  الدورية: كل ${formatKm(it.intervalKm)} كم${it.intervalYears ? ` أو ${it.intervalYears} سنوات` : ""}`
+    );
+    lines.push(
+      `  ${remainingKm <= 0 ? "تجاوز الموعد بـ" : "المتبقي"}: ${formatKm(Math.abs(remainingKm))} كم — ${statusText}`
+    );
+    lines.push("");
+  });
+  return lines.join("\n");
+}
+
+// Opens the phone's email app with a ready-made report. A web app running
+// in a sandboxed browser tab can't send email on its own — this hands the
+// draft off to the user's mail app, and they tap send.
+function sendReportEmail(email, items, currentKm) {
+  if (!email) return;
+  const subject = encodeURIComponent("تقرير صيانة السيارة");
+  const body = encodeURIComponent(buildFullReportText(items, currentKm));
+  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+}
+
+function CarMaintenance() {
+  const [items, setItems] = useState(DEFAULT_ITEMS);
+  const [currentKm, setCurrentKm] = useState("");
+  const [email, setEmail] = useState("");
+  const [showEmail, setShowEmail] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saveState, setSaveState] = useState("idle"); // idle | saving | saved | error
+
+  useEffect(() => {
+    ensureFonts();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (!cancelled && raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.items) setItems(parsed.items);
+          if (typeof parsed.currentKm === "number") setCurrentKm(parsed.currentKm);
+          if (typeof parsed.email === "string") setEmail(parsed.email);
+        }
+      } catch (e) {
+        // no existing data yet — fine, use defaults
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const persist = useCallback((nextItems, nextKm, nextEmail) => {
+    setSaveState("saving");
+    try {
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ items: nextItems, currentKm: nextKm, email: nextEmail })
+      );
+      setSaveState("saved");
+    } catch (e) {
+      setSaveState("error");
+    }
+  }, []);
+
+  function handleEdit(id, patch) {
+    setItems((prev) => {
+      const next = prev.map((it) => (it.id === id ? { ...it, ...patch } : it));
+      persist(next, currentKm, email);
+      return next;
+    });
   }
 
-  function statusBg(key) {
-    return { TC: "#E7F1EC", RS: "#FBF0E1", RC: "#EAF0F8" }[key] || "#F5F6F2";
-  }
-  function statusColor(key) {
-    return { TC: "#3C7A5D", RS: "#C1791F", RC: "#4A6FA5" }[key] || "#8A93A0";
+  function handleKmChange(value) {
+    const num = Number(value);
+    setCurrentKm(value === "" ? "" : num);
+    persist(items, value === "" ? 0 : num, email);
   }
 
-  // ---------- public API used by inline onclick handlers ----------
-  window.App = {
-    setTab(t) { tab = t; render(); },
-    setDate(v) { selectedDate = v; render(); },
-    setStatus(key) { setStatus(selectedDate, key); },
-    toggleCp(i) { toggleCheckpoint(selectedDate, i); },
-    toggleYear(y) { expandedYear = expandedYear === y ? null : y; render(); },
-    openModal() { showDataModal = true; render(); },
-    closeModal(e) { if (e && e.target !== e.currentTarget) return; showDataModal = false; render(); },
-  };
+  function handleEmailChange(value) {
+    setEmail(value);
+    persist(items, currentKm, value);
+  }
 
-  render();
-})();
+  function itemTiming(it) {
+    const since = Math.max(0, (Number(currentKm) || 0) - (Number(it.lastKm) || 0));
+    const remainingKm = it.intervalKm - since;
+    let remainingDays = null;
+    if (it.intervalYears && it.lastDate) {
+      const daysSince = daysBetween(it.lastDate, new Date());
+      if (daysSince != null) remainingDays = it.intervalYears * 365 - daysSince;
+    }
+    return { remainingKm, remainingDays };
+  }
+
+  const dueCount = items.filter((it) => {
+    const { remainingKm, remainingDays } = itemTiming(it);
+    return remainingKm <= GAUGE_RED_KM || (remainingDays != null && remainingDays <= 0);
+  }).length;
+
+  const soonCount = items.filter((it) => {
+    const { remainingKm, remainingDays } = itemTiming(it);
+    const due = remainingKm <= GAUGE_RED_KM || (remainingDays != null && remainingDays <= 0);
+    if (due) return false;
+    return remainingKm <= GAUGE_ORANGE_KM;
+  }).length;
+
+  return (
+    <div
+      dir="rtl"
+      className="min-h-screen w-full bg-gradient-to-b from-[#221D24] via-[#1A1712] to-[#120F0C] text-[#F3ECDF]"
+      style={{ fontFamily: "'Tajawal', sans-serif" }}
+    >
+      <div className="max-w-3xl mx-auto px-4 py-8 sm:py-10">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <div>
+            <div className="flex items-center gap-2 text-[#D9A54A] mb-1">
+              <Icon name="gauge" className="w-6 h-6" />
+              <span className="text-xs font-[Tajawal] font-bold tracking-wide text-[#A79C93]">
+                لوحة متابعة الصيانة
+              </span>
+            </div>
+            <h1 className="font-[Cairo] font-black text-2xl sm:text-3xl text-[#F3ECDF]">
+              صيانة سيارتي
+            </h1>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setShowEmail((v) => !v)}
+              title="إرسال تقرير بالبريد الإلكتروني"
+              className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-colors ${
+                showEmail
+                  ? "border-[#D9A54A]/50 bg-[#D9A54A]/10 text-[#D9A54A]"
+                  : "border-[#3A3340] bg-[#211D26] text-[#A79C93] hover:text-[#D9A54A] hover:border-[#D9A54A]/40"
+              }`}
+            >
+              <Icon name="mail" className="w-4 h-4" />
+            </button>
+            <p className="text-[10px] text-[#A79C93] font-[Tajawal] h-4">
+              {saveState === "saving" && "جارٍ الحفظ…"}
+              {saveState === "saved" && "تم الحفظ"}
+              {saveState === "error" && "تعذّر الحفظ"}
+            </p>
+          </div>
+        </div>
+
+        {/* Odometer input */}
+        <div className="rounded-2xl border border-[#3A3340] bg-[#211D26] p-5 mb-6 flex flex-col sm:flex-row sm:items-center gap-4 shadow-lg shadow-black/20">
+          <div className="flex-1">
+            <label className="text-sm font-[Tajawal] font-bold text-[#D8CFC3] block mb-2">
+              قراءة العداد الحالية (كم)
+            </label>
+            <input
+              type="number"
+              inputMode="numeric"
+              value={currentKm}
+              onChange={(e) => handleKmChange(e.target.value)}
+              placeholder="مثال: 45000"
+              className="w-full bg-[#18141C] border border-[#3A3340] rounded-xl px-4 py-3 text-xl font-[Cairo] font-bold text-[#F3ECDF] focus:outline-none focus:ring-2 focus:ring-[#D9A54A]"
+            />
+          </div>
+          <div className="flex gap-3">
+            <div className="rounded-xl border border-[#3A3340] bg-[#18141C] px-4 py-3 text-center min-w-[84px]">
+              <p className="font-[Cairo] font-black text-xl text-[#C1443B]">{dueCount}</p>
+              <p className="text-[10px] text-[#A79C93] font-[Tajawal] mt-0.5">مستحقة</p>
+            </div>
+            <div className="rounded-xl border border-[#3A3340] bg-[#18141C] px-4 py-3 text-center min-w-[84px]">
+              <p className="font-[Cairo] font-black text-xl text-[#D9A54A]">{soonCount}</p>
+              <p className="text-[10px] text-[#A79C93] font-[Tajawal] mt-0.5">قريبة</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Email report — hidden until the envelope icon is tapped */}
+        {showEmail && (
+          <>
+            <div className="rounded-2xl border border-[#3A3340] bg-[#211D26] p-5 mb-2 flex flex-col sm:flex-row sm:items-end gap-4 shadow-lg shadow-black/20">
+              <div className="flex-1">
+                <label className="text-sm font-[Tajawal] font-bold text-[#D8CFC3] block mb-2">
+                  البريد الإلكتروني لإرسال تقرير الصيانة
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  placeholder="example@email.com"
+                  className="w-full bg-[#18141C] border border-[#3A3340] rounded-xl px-4 py-3 text-[#F3ECDF] font-[Tajawal] focus:outline-none focus:ring-2 focus:ring-[#D9A54A]"
+                />
+              </div>
+              <button
+                onClick={() => sendReportEmail(email, items, currentKm)}
+                disabled={!email}
+                className="shrink-0 text-sm font-[Tajawal] font-bold rounded-xl bg-[#3FA76C] text-[#18141C] px-5 py-3 hover:bg-[#4FBF80] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                إرسال التقرير الآن
+              </button>
+            </div>
+            <p className="text-[11px] text-[#7A7168] font-[Tajawal] mb-6">
+              سيفتح هذا تطبيق البريد على هاتفك برسالة جاهزة تضم كل بيانات الصيانة — لأسباب أمنية لا يمكن لأي
+              صفحة ويب إرسال البريد تلقائيًا دون أن تفتح تطبيق البريد وتضغط إرسال بنفسك.
+            </p>
+          </>
+        )}
+
+        {loading ? (
+          <div className="text-center text-[#A79C93] font-[Tajawal] py-16">جارٍ التحميل…</div>
+        ) : (
+          <div className="grid sm:grid-cols-2 gap-4">
+            {items.map((item) => (
+              <MaintenanceCard key={item.id} item={item} currentKm={currentKm} onEdit={handleEdit} />
+            ))}
+          </div>
+        )}
+
+        <p className="text-center text-[11px] text-[#7A7168] font-[Tajawal] mt-8">
+          بياناتك محفوظة تلقائيًا على هذا الجهاز
+        </p>
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<CarMaintenance />);
 </script>
 </body>
 </html>
