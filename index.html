@@ -5,913 +5,533 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
 <title>صيانة سيارتي</title>
 <link rel="icon" href="data:," />
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
 <style>
-  html, body { margin: 0; padding: 0; background: #120F0C; }
-  #diag {
-    display: none;
-    direction: rtl;
-    font-family: sans-serif;
-    color: #F3ECDF;
-    background: #2a1414;
-    border: 1px solid #C1443B;
-    border-radius: 12px;
-    padding: 16px;
-    margin: 16px;
-    line-height: 1.8;
-    white-space: pre-wrap;
-    font-size: 14px;
+  :root {
+    --bg1: #221D24; --bg2: #1A1712; --bg3: #120F0C;
+    --panel: #211D26; --panel-inner: #18141C; --chip: #2A2430;
+    --border: #3A3340; --track: #3E3648;
+    --text: #F3ECDF; --text-mid: #D8CFC3; --text-muted: #A79C93; --text-faint: #7A7168;
+    --good: #3FA76C; --good-hover: #4FBF80;
+    --warn: #D9A54A; --warn-hover: #E5BD73;
+    --danger: #C1443B;
+    --radius: 16px;
   }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg3); }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(to bottom, var(--bg1), var(--bg2) 55%, var(--bg3));
+    color: var(--text);
+    font-family: 'Tajawal', 'Segoe UI', sans-serif;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 28px 16px 40px; }
+  .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
+  .eyebrow { display: flex; align-items: center; gap: 6px; color: var(--warn); margin-bottom: 4px; }
+  .eyebrow span { font-size: 11px; font-weight: 700; letter-spacing: .02em; color: var(--text-muted); }
+  h1 { font-family: 'Cairo', sans-serif; font-weight: 900; font-size: 26px; margin: 0; color: var(--text); }
+  .icon-btn { width: 36px; height: 36px; border-radius: 12px; border: 1px solid var(--border); background: var(--panel);
+    color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .icon-btn.active { border-color: rgba(217,165,74,.5); background: rgba(217,165,74,.1); color: var(--warn); }
+  .save-note { font-size: 10px; color: var(--text-muted); height: 16px; margin-top: 4px; }
+  .panel { border-radius: var(--radius); border: 1px solid var(--border); background: var(--panel); padding: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.2); margin-bottom: 24px; }
+  .odo-row { display: flex; flex-direction: column; gap: 16px; }
+  @media (min-width: 640px) { .odo-row { flex-direction: row; align-items: center; } }
+  .field-label { font-size: 14px; font-weight: 700; color: var(--text-mid); display: block; margin-bottom: 8px; }
+  input[type=number], input[type=text], input[type=date], input[type=email] {
+    width: 100%; background: var(--panel-inner); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px; color: var(--text); font-family: inherit; font-size: 15px; outline: none;
+  }
+  input:focus { border-color: var(--warn); box-shadow: 0 0 0 2px rgba(217,165,74,.25); }
+  .odo-input { font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 20px; }
+  .stat-pair { display: flex; gap: 12px; }
+  .stat-box { border-radius: 12px; border: 1px solid var(--border); background: var(--panel-inner); padding: 12px 16px;
+    text-align: center; min-width: 84px; }
+  .stat-box b { display: block; font-family: 'Cairo', sans-serif; font-weight: 900; font-size: 20px; }
+  .stat-box small { font-size: 10px; color: var(--text-muted); }
+  .email-panel { display: flex; flex-direction: column; gap: 16px; margin-bottom: 8px; }
+  @media (min-width: 640px) { .email-panel { flex-direction: row; align-items: flex-end; } }
+  .btn { border-radius: 12px; border: none; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-weight: 700;
+    font-size: 14px; cursor: pointer; }
+  .btn-primary { background: var(--good); color: #14201A; }
+  .btn-primary:hover { background: var(--good-hover); }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+  .hint { font-size: 11px; color: var(--text-faint); margin: 0 0 20px; }
+  .grid { display: grid; gap: 16px; }
+  @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+  .card { border-radius: var(--radius); border: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column;
+    gap: 14px; box-shadow: 0 10px 25px rgba(0,0,0,.25); transition: background .5s, border-color .5s; }
+  .card.good { background: rgba(63,167,108,.06); border-color: rgba(63,167,108,.25); }
+  .card.warn { background: rgba(217,165,74,.07); border-color: rgba(217,165,74,.3); }
+  .card.danger { background: rgba(193,68,59,.08); border-color: rgba(193,68,59,.35); }
+  .card-head { display: flex; align-items: center; justify-content: space-between; }
+  .card-title { display: flex; align-items: center; gap: 10px; }
+  .card-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--chip); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; color: var(--warn); flex-shrink: 0; }
+  .card-title h3 { font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 16px; margin: 0; }
+  .card-title p { font-size: 12px; color: var(--text-muted); margin: 2px 0 0; }
+  .badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; border: 1px solid; display: flex;
+    align-items: center; gap: 4px; white-space: nowrap; }
+  .badge.good { color: var(--good); background: rgba(63,167,108,.1); border-color: rgba(63,167,108,.3); }
+  .badge.warn { color: var(--warn); background: rgba(217,165,74,.1); border-color: rgba(217,165,74,.3); }
+  .badge.danger { color: var(--danger); background: rgba(193,68,59,.1); border-color: rgba(193,68,59,.3); }
+  .stats2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: center; margin-top: -4px; }
+  .stats2 small { font-size: 10px; color: var(--text-muted); }
+  .stats2 b { display: block; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 17px; }
+  .due-danger small, .due-danger b, .due-danger span { color: var(--danger) !important; font-weight: 700; }
+  .time-row { font-size: 12px; text-align: center; margin-top: -4px; color: var(--text-muted); }
+  .last-row { font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 12px;
+    display: flex; align-items: center; justify-content: space-between; }
+  .last-row .val { color: var(--text-mid); }
+  .history-block { font-size: 12px; margin-top: -4px; }
+  .history-block p { color: var(--text-faint); margin: 0 0 4px; }
+  .history-row { display: flex; align-items: center; justify-content: space-between; color: var(--text-faint); opacity: .8; }
+  .remind-btn { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 700;
+    border-radius: 12px; border: 1px solid; padding: 10px; background: transparent; cursor: pointer; font-family: inherit; }
+  .remind-btn.warn { border-color: rgba(217,165,74,.4); color: var(--warn); }
+  .remind-btn.danger { border-color: rgba(193,68,59,.4); color: var(--danger); }
+  .action-row { display: flex; gap: 8px; }
+  .mark-btn { flex: 1; font-size: 14px; font-weight: 700; border-radius: 12px; border: none; padding: 10px;
+    background: var(--warn); color: #221704; cursor: pointer; font-family: inherit; }
+  .mark-btn:hover { background: var(--warn-hover); }
+  .mark-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .edit-btn { font-size: 14px; border-radius: 12px; border: 1px solid var(--border); color: var(--text-mid);
+    background: transparent; padding: 10px 14px; cursor: pointer; font-family: inherit; }
+  .edit-panel { display: flex; flex-direction: column; gap: 10px; background: var(--bg3); border-radius: 12px;
+    padding: 14px; border: 1px solid var(--border); }
+  .edit-panel label { font-size: 12px; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px; }
+  .edit-actions { display: flex; gap: 8px; margin-top: 4px; }
+  .edit-actions button { flex: 1; padding: 10px; border-radius: 10px; border: none; font-family: inherit; font-size: 14px;
+    font-weight: 700; cursor: pointer; }
+  .save-btn { background: var(--good); color: #14201A; }
+  .save-btn:hover { background: var(--good-hover); }
+  .cancel-btn { background: transparent; border: 1px solid var(--border) !important; color: var(--text-mid); }
+  .footer-note { text-align: center; font-size: 11px; color: var(--text-faint); margin-top: 28px; }
+  #diag { display: none; direction: rtl; color: var(--text); background: #2a1414; border: 1px solid var(--danger);
+    border-radius: 12px; padding: 16px; margin: 16px; line-height: 1.8; white-space: pre-wrap; font-size: 14px; }
 </style>
 </head>
 <body>
 <div id="root">
-  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;color:#A79C93;font-family:sans-serif;direction:rtl;">
-    جارٍ تحميل التطبيق…
+  <div style="min-height:60vh;display:flex;align-items:center;justify-content:center;color:var(--text-muted);">
+    جارٍ التحميل…
   </div>
 </div>
 <div id="diag"></div>
 <script>
-  // Self-diagnosing fallback: if the app hasn't rendered anything after a
-  // few seconds (e.g. a CDN script was blocked by the network, or a script
-  // error occurred), show a clear message instead of leaving a blank page.
-  function showDiag(message) {
-    var el = document.getElementById("diag");
-    el.textContent = message;
-    el.style.display = "block";
-  }
-  window.addEventListener("error", function (e) {
-    showDiag("حدث خطأ أثناء تشغيل الصفحة:\n" + (e.message || e.error));
-  });
-  setTimeout(function () {
-    var root = document.getElementById("root");
-    if (!root || root.children.length === 0) {
-      var missing = [];
-      if (typeof React === "undefined") missing.push("React");
-      if (typeof ReactDOM === "undefined") missing.push("ReactDOM");
-      if (typeof Babel === "undefined") missing.push("Babel");
-      if (missing.length > 0) {
-        showDiag(
-          "تعذّر تحميل مكتبات ضرورية من الإنترنت: " + missing.join("، ") +
-          "\n\nهذا يعني أن شبكتك أو المتصفح يحجب هذه الملفات الخارجية (CDN). " +
-          "جرّب تبديل الشبكة (واي فاي بدل بيانات الهاتف أو العكس)، أو إيقاف أي حاجب إعلانات/VPN مؤقتًا، ثم أعد فتح الصفحة."
-        );
-      } else {
-        showDiag(
-          "تم تحميل المكتبات لكن الصفحة لم تُعرض. جرّب إعادة تحميل الصفحة، وإن استمرت المشكلة أرسل لقطة شاشة من هذه الرسالة."
-        );
-      }
-    }
-  }, 4000);
+window.addEventListener("error", function (e) {
+  var el = document.getElementById("diag");
+  el.textContent = "حدث خطأ غير متوقع في الصفحة:\n" + (e.message || e.error);
+  el.style.display = "block";
+});
 </script>
-<script type="text/babel" data-presets="react">
-const { useState, useEffect, useCallback } = React;
+<script>
+"use strict";
 
-const FONT_LINK_ID = "car-maintenance-fonts";
+/* ---------- Fonts (non-blocking; page works even if this fails) ---------- */
+try {
+  var fontLink = document.createElement("link");
+  fontLink.rel = "stylesheet";
+  fontLink.href = "https://fonts.googleapis.com/css2?family=Cairo:wght@600;800;900&family=Tajawal:wght@400;500;700&display=swap";
+  document.head.appendChild(fontLink);
+} catch (e) { /* fonts are cosmetic only, ignore failures */ }
 
-function ensureFonts() {
-  if (typeof document === "undefined") return;
-  if (document.getElementById(FONT_LINK_ID)) return;
-  const link = document.createElement("link");
-  link.id = FONT_LINK_ID;
-  link.rel = "stylesheet";
-  link.href =
-    "https://fonts.googleapis.com/css2?family=Cairo:wght@600;800;900&family=Tajawal:wght@400;500;700&display=swap";
-  document.head.appendChild(link);
+/* ---------- Constants ---------- */
+var STORAGE_KEY = "car-maintenance-state-v1";
+var MAX_HISTORY = 10;
+var GAUGE_ORANGE_KM = 2000;
+var GAUGE_RED_KM = 500;
+
+var ICONS = {
+  oil: '<path d="M8 3h8l1.5 3.5H6.5L8 3z"/><path d="M6.5 6.5h11L19 20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20l1.5-13.5z"/><path d="M9.5 11.5c-1 1.2-1 2.4 0 3.2 1 .8 1 1.8 0 2.8"/><path d="M14.5 11.5c-1 1.2-1 2.4 0 3.2 1 .8 1 1.8 0 2.8"/>',
+  fuel: '<path d="M5 20V6a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v14"/><path d="M4 20h11"/><path d="M14 9h2l3 3v5.5a1.5 1.5 0 0 1-3 0V15h-2"/><circle cx="8.5" cy="9.5" r="1.5"/>',
+  air: '<path d="M3 8h11a2.5 2.5 0 1 0-2.5-2.5"/><path d="M3 12h15a2.5 2.5 0 1 1-2.5 2.5"/><path d="M3 16h9a2.5 2.5 0 1 1-2.5 2.5"/>',
+  belt: '<circle cx="7" cy="12" r="3.2"/><circle cx="17" cy="8" r="2.4"/><circle cx="17" cy="16" r="2.4"/><path d="M9.3 10.3 14.8 8.8"/><path d="M9.3 13.7 14.8 15.2"/><path d="M17 5.6c1.8.4 3 1.4 3 2.4s-1.2 2-3 2.4"/>',
+  brake: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><path d="M12 3.5v3"/><path d="M12 17.5v3"/><path d="M20.5 12h-3"/><path d="M6.5 12h-3"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/>',
+  gauge: '<path d="M12 3a9 9 0 0 0-9 9c0 2 .6 3.8 1.6 5.3"/><path d="M12 3a9 9 0 0 1 9 9c0 2-.6 3.8-1.6 5.3"/><path d="M12 12l4-3"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/>',
+  check: '<path d="M20 6L9 17l-5-5"/>',
+  warn: '<path d="M12 3l10 18H2L12 3z"/><path d="M12 10v4"/>'
+};
+function svgIcon(name, cls) {
+  return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" ' +
+    'stroke-linecap="round" stroke-linejoin="round">' + (ICONS[name] || "") + '</svg>';
 }
 
-const STORAGE_KEY = "car-maintenance-state-v1";
-
-const DEFAULT_ITEMS = [
-  {
-    id: "engine-oil",
-    name: "زيت المحرك وفلتره",
-    icon: "oil",
-    intervalKm: 10000,
-    intervalYears: null,
-    lastKm: "",
-    lastDate: "",
-    history: [],
-  },
-  {
-    id: "air-filter",
-    name: "فلتر الهواء",
-    icon: "air",
-    intervalKm: 15000,
-    intervalYears: null,
-    lastKm: "",
-    lastDate: "",
-    history: [],
-  },
-  {
-    id: "fuel-filter",
-    name: "فلتر البنزين",
-    icon: "fuel",
-    intervalKm: 30000,
-    intervalYears: 5,
-    lastKm: "",
-    lastDate: "",
-    history: [],
-  },
-  {
-    id: "timing-belt",
-    name: "حزام التوزيع",
-    icon: "belt",
-    intervalKm: 70000,
-    intervalYears: 5,
-    lastKm: "",
-    lastDate: "",
-    history: [],
-  },
-  {
-    id: "brake-pads",
-    name: "وسادات الفرامل",
-    icon: "brake",
-    intervalKm: 30000,
-    intervalYears: null,
-    lastKm: "",
-    lastDate: "",
-    history: [],
-  },
+var DEFAULT_ITEMS = [
+  { id: "engine-oil", name: "زيت المحرك وفلتره", icon: "oil", intervalKm: 10000, intervalYears: null, lastKm: "", lastDate: "", history: [] },
+  { id: "air-filter", name: "فلتر الهواء", icon: "air", intervalKm: 15000, intervalYears: null, lastKm: "", lastDate: "", history: [] },
+  { id: "fuel-filter", name: "فلتر البنزين", icon: "fuel", intervalKm: 30000, intervalYears: 5, lastKm: "", lastDate: "", history: [] },
+  { id: "timing-belt", name: "حزام التوزيع", icon: "belt", intervalKm: 70000, intervalYears: 5, lastKm: "", lastDate: "", history: [] },
+  { id: "brake-pads", name: "وسادات الفرامل", icon: "brake", intervalKm: 30000, intervalYears: null, lastKm: "", lastDate: "", history: [] }
 ];
 
-function todayISO() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function formatKm(n) {
-  const v = Math.round(Number(n) || 0);
-  return v.toLocaleString("en-US");
-}
-
+/* ---------- Helpers ---------- */
+function todayISO() { return new Date().toISOString().slice(0, 10); }
+function formatKm(n) { var v = Math.round(Number(n) || 0); return v.toLocaleString("en-US"); }
 function formatDateAr(iso) {
   if (!iso) return "—";
-  const d = new Date(iso + "T00:00:00");
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("ar-EG-u-nu-latn", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  var d = new Date(iso + "T00:00:00");
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("ar-EG-u-nu-latn", { year: "numeric", month: "long", day: "numeric" });
 }
-
-// --- Icons (simple line icons, stroke-based, matches gauge/dashboard mood) ---
-function Icon({ name, className }) {
-  const common = {
-    className,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.6,
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-  };
-  switch (name) {
-    case "oil":
-      return (
-        <svg {...common}>
-          <path d="M8 3h8l1.5 3.5H6.5L8 3z" />
-          <path d="M6.5 6.5h11L19 20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20l1.5-13.5z" />
-          <path d="M9.5 11.5c-1 1.2-1 2.4 0 3.2 1 .8 1 1.8 0 2.8" />
-          <path d="M14.5 11.5c-1 1.2-1 2.4 0 3.2 1 .8 1 1.8 0 2.8" />
-        </svg>
-      );
-    case "filter":
-      return (
-        <svg {...common}>
-          <path d="M4 5h16l-6 7v6l-4 2v-8L4 5z" />
-        </svg>
-      );
-    case "fuel":
-      return (
-        <svg {...common}>
-          <path d="M5 20V6a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v14" />
-          <path d="M4 20h11" />
-          <path d="M14 9h2l3 3v5.5a1.5 1.5 0 0 1-3 0V15h-2" />
-          <circle cx="8.5" cy="9.5" r="1.5" />
-        </svg>
-      );
-    case "air":
-      return (
-        <svg {...common}>
-          <path d="M3 8h11a2.5 2.5 0 1 0-2.5-2.5" />
-          <path d="M3 12h15a2.5 2.5 0 1 1-2.5 2.5" />
-          <path d="M3 16h9a2.5 2.5 0 1 1-2.5 2.5" />
-        </svg>
-      );
-    case "belt":
-      return (
-        <svg {...common}>
-          <circle cx="7" cy="12" r="3.2" />
-          <circle cx="17" cy="8" r="2.4" />
-          <circle cx="17" cy="16" r="2.4" />
-          <path d="M9.3 10.3 14.8 8.8" />
-          <path d="M9.3 13.7 14.8 15.2" />
-          <path d="M17 5.6c1.8.4 3 1.4 3 2.4s-1.2 2-3 2.4" />
-        </svg>
-      );
-    case "brake":
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="8.5" />
-          <circle cx="12" cy="12" r="3" />
-          <path d="M12 3.5v3" />
-          <path d="M12 17.5v3" />
-          <path d="M20.5 12h-3" />
-          <path d="M6.5 12h-3" />
-        </svg>
-      );
-    case "mail":
-      return (
-        <svg {...common}>
-          <rect x="3" y="5" width="18" height="14" rx="2" />
-          <path d="m4 7 8 6 8-6" />
-        </svg>
-      );
-    case "gauge":
-      return (
-        <svg {...common}>
-          <path d="M12 3a9 9 0 0 0-9 9c0 2 .6 3.8 1.6 5.3" />
-          <path d="M12 3a9 9 0 0 1 9 9c0 2-.6 3.8-1.6 5.3" />
-          <path d="M12 12l4-3" />
-          <circle cx="12" cy="12" r="1.4" fill="currentColor" />
-        </svg>
-      );
-    case "check":
-      return (
-        <svg {...common}>
-          <path d="M20 6L9 17l-5-5" />
-        </svg>
-      );
-    case "warn":
-      return (
-        <svg {...common}>
-          <path d="M12 3l10 18H2L12 3z" />
-          <path d="M12 10v4" />
-          <circle cx="12" cy="17.3" r="0.15" fill="currentColor" stroke="none" />
-        </svg>
-      );
-    default:
-      return null;
-  }
+function daysBetween(fromISO, toDate) {
+  var from = new Date(fromISO + "T00:00:00");
+  if (isNaN(from.getTime())) return null;
+  var a = new Date(from); a.setHours(0,0,0,0);
+  var b = new Date(toDate); b.setHours(0,0,0,0);
+  return Math.floor((b - a) / 86400000);
 }
-
-// --- Gauge: semicircular arc, 0 (just changed) -> 100 (due) ---
-const GAUGE_ORANGE_KM = 2000; // remaining <= this starts the orange zone
-const GAUGE_RED_KM = 500; // remaining <= this starts the red zone
-
-const GAUGE_COLORS = {
-  good: "#3FA76C",
-  warn: "#D9A54A",
-  danger: "#C1443B",
-};
-
-// Semicircular gauge: a single progress arc, colored to match the item's
-// current zone (green / orange / red) per the same km thresholds used
-// elsewhere, with a needle marking the exact position.
-function Gauge({ percent, status }) {
-  const clamped = Math.max(0, Math.min(100, percent));
-  const radius = 54;
-  const circumference = Math.PI * radius; // half circle path length
-  const dash = (clamped / 100) * circumference;
-  const color = GAUGE_COLORS[status] || GAUGE_COLORS.good;
-
-  return (
-    <svg viewBox="0 0 140 80" className="w-full h-auto overflow-visible">
-      <path
-        d="M 10 74 A 54 54 0 0 1 130 74"
-        fill="none"
-        stroke="#3E3648"
-        strokeWidth="10"
-        strokeLinecap="round"
-      />
-      <path
-        d="M 10 74 A 54 54 0 0 1 130 74"
-        fill="none"
-        stroke={color}
-        strokeWidth="10"
-        strokeLinecap="round"
-        strokeDasharray={`${dash} ${circumference}`}
-        style={{ transition: "stroke-dasharray 700ms ease, stroke 400ms ease" }}
-      />
-      {/* needle */}
-      <g
-        style={{
-          transformOrigin: "70px 74px",
-          transform: `rotate(${-90 + (clamped / 100) * 180}deg)`,
-          transition: "transform 700ms ease",
-        }}
-      >
-        <line x1="70" y1="74" x2="70" y2="26" stroke="#F3ECDF" strokeWidth="2.5" strokeLinecap="round" />
-        <circle cx="70" cy="74" r="5" fill="#F3ECDF" stroke="#18141C" strokeWidth="1.5" />
-      </g>
-    </svg>
-  );
+function addYearsISO(fromISO, years) {
+  var d = new Date(fromISO + "T00:00:00");
+  if (isNaN(d.getTime())) return null;
+  d.setFullYear(d.getFullYear() + years);
+  return d;
 }
-
 function statusFor(remainingKm, remainingDays) {
-  const timeDue = remainingDays != null && remainingDays <= 0;
+  var timeDue = remainingDays != null && remainingDays <= 0;
   if (remainingKm <= GAUGE_RED_KM || timeDue) return "danger";
   if (remainingKm <= GAUGE_ORANGE_KM) return "warn";
   return "good";
 }
+var GAUGE_COLORS = { good: "#3FA76C", warn: "#D9A54A", danger: "#C1443B" };
+var STATUS_LABEL = { good: "بحالة جيدة", warn: "قاربت على الاستحقاق", danger: "مستحقة الآن" };
 
-function daysBetween(fromISO, toDate) {
-  const from = new Date(fromISO + "T00:00:00");
-  if (Number.isNaN(from.getTime())) return null;
-  const ms = toDate.setHours(0, 0, 0, 0) - from.setHours(0, 0, 0, 0);
-  return Math.floor(ms / (1000 * 60 * 60 * 24));
+function gaugeSVG(percent, status) {
+  var clamped = Math.max(0, Math.min(100, percent));
+  var radius = 54, circumference = Math.PI * radius;
+  var dash = (clamped / 100) * circumference;
+  var color = GAUGE_COLORS[status] || GAUGE_COLORS.good;
+  var angle = -90 + (clamped / 100) * 180;
+  return '<svg viewBox="0 0 140 80" style="width:100%;height:auto;overflow:visible;">' +
+    '<path d="M 10 74 A 54 54 0 0 1 130 74" fill="none" stroke="' + '#3E3648' + '" stroke-width="10" stroke-linecap="round"/>' +
+    '<path d="M 10 74 A 54 54 0 0 1 130 74" fill="none" stroke="' + color + '" stroke-width="10" stroke-linecap="round" ' +
+      'stroke-dasharray="' + dash + ' ' + circumference + '"/>' +
+    '<g transform="rotate(' + angle + ' 70 74)">' +
+      '<line x1="70" y1="74" x2="70" y2="26" stroke="#F3ECDF" stroke-width="2.5" stroke-linecap="round"/>' +
+      '<circle cx="70" cy="74" r="5" fill="#F3ECDF" stroke="#18141C" stroke-width="1.5"/>' +
+    '</g></svg>';
 }
 
-function addYearsISO(fromISO, years) {
-  const d = new Date(fromISO + "T00:00:00");
-  if (Number.isNaN(d.getTime())) return null;
-  d.setFullYear(d.getFullYear() + years);
-  return d;
-}
-
-const statusLabel = {
-  good: "بحالة جيدة",
-  warn: "قاربت على الاستحقاق",
-  danger: "مستحقة الآن",
-};
-
-// Build an .ics reminder file so the person can add it to their phone's
-// calendar/reminders app with one tap — the artifact can't reach the
-// device's calendar directly, so this hands the reminder off as a file.
-function buildReminderICS({ itemName, remainingKm, remainingDays, currentKm }) {
-  const pad = (n) => String(n).padStart(2, "0");
-  const now = new Date();
-  const stamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(
-    now.getUTCDate()
-  )}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}Z`;
-  const uid = `car-maint-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@car-maintenance`;
-  const summary = `تذكير صيانة: ${itemName} تقترب من الاستحقاق`;
-  const kmDue = remainingKm <= 0;
-  const timeDue = remainingDays != null && remainingDays <= 0;
-  let description;
+/* ---------- ICS reminder ---------- */
+function buildReminderICS(itemName, remainingKm, remainingDays, currentKm) {
+  function pad(n) { return String(n).padStart(2, "0"); }
+  var now = new Date();
+  var stamp = now.getUTCFullYear() + pad(now.getUTCMonth()+1) + pad(now.getUTCDate()) + "T" +
+    pad(now.getUTCHours()) + pad(now.getUTCMinutes()) + pad(now.getUTCSeconds()) + "Z";
+  var uid = "car-maint-" + Date.now() + "-" + Math.random().toString(36).slice(2,8) + "@car-maintenance";
+  var summary = "تذكير صيانة: " + itemName + " تقترب من الاستحقاق";
+  var kmDue = remainingKm <= 0, timeDue = remainingDays != null && remainingDays <= 0;
+  var description;
   if (kmDue || timeDue) {
-    description = `موعد ${itemName} مستحق الآن. قراءة العداد الحالية: ${formatKm(currentKm)} كم.`;
+    description = "موعد " + itemName + " مستحق الآن. قراءة العداد الحالية: " + formatKm(currentKm) + " كم.";
   } else {
-    const parts = [`تبقّى ${formatKm(remainingKm)} كم`];
-    if (remainingDays != null) parts.push(`أو ${remainingDays} يومًا`);
-    description = `${parts.join(" ")} على موعد ${itemName} (أيهما أقرب). قراءة العداد الحالية: ${formatKm(
-      currentKm
-    )} كم.`;
+    var parts = ["تبقّى " + formatKm(remainingKm) + " كم"];
+    if (remainingDays != null) parts.push("أو " + remainingDays + " يومًا");
+    description = parts.join(" ") + " على موعد " + itemName + " (أيهما أقرب). قراءة العداد الحالية: " + formatKm(currentKm) + " كم.";
   }
-
-  const ics = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//Car Maintenance//AR//EN",
-    "CALSCALE:GREGORIAN",
-    "BEGIN:VEVENT",
-    `UID:${uid}`,
-    `DTSTAMP:${stamp}`,
-    `DTSTART:${stamp}`,
-    `DTEND:${stamp}`,
-    `SUMMARY:${summary}`,
-    `DESCRIPTION:${description}`,
-    "BEGIN:VALARM",
-    "TRIGGER:PT0M",
-    "ACTION:DISPLAY",
-    `DESCRIPTION:${summary}`,
-    "END:VALARM",
-    "END:VEVENT",
-    "END:VCALENDAR",
+  return [
+    "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Car Maintenance//AR//EN","CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT","UID:" + uid,"DTSTAMP:" + stamp,"DTSTART:" + stamp,"DTEND:" + stamp,
+    "SUMMARY:" + summary,"DESCRIPTION:" + description,
+    "BEGIN:VALARM","TRIGGER:PT0M","ACTION:DISPLAY","DESCRIPTION:" + summary,"END:VALARM",
+    "END:VEVENT","END:VCALENDAR"
   ].join("\r\n");
-
-  return ics;
 }
-
 function downloadReminder(item, remainingKm, remainingDays, currentKm) {
-  const ics = buildReminderICS({ itemName: item.name, remainingKm, remainingDays, currentKm });
-  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${item.id}-تذكير.ics`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  var ics = buildReminderICS(item.name, remainingKm, remainingDays, currentKm);
+  var blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = item.id + "-تذكير.ics";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
 }
 
-function MaintenanceCard({ item, currentKm, onEdit }) {
-  const [editing, setEditing] = useState(false);
-  const [draftKm, setDraftKm] = useState(item.lastKm);
-  const [draftDate, setDraftDate] = useState(item.lastDate || todayISO());
-  const [draftInterval, setDraftInterval] = useState(item.intervalKm);
-  const [draftYears, setDraftYears] = useState(item.intervalYears ?? "");
-
-  useEffect(() => {
-    setDraftKm(item.lastKm);
-    setDraftDate(item.lastDate || todayISO());
-    setDraftInterval(item.intervalKm);
-    setDraftYears(item.intervalYears ?? "");
-  }, [item.lastKm, item.lastDate, item.intervalKm, item.intervalYears]);
-
-  const sinceChange = Math.max(0, (Number(currentKm) || 0) - (Number(item.lastKm) || 0));
-  const remainingKm = item.intervalKm - sinceChange;
-  const kmPercentUsed = item.intervalKm > 0 ? (sinceChange / item.intervalKm) * 100 : 0;
-
-  const hasYears = !!item.intervalYears;
-  const daysSince = hasYears && item.lastDate ? daysBetween(item.lastDate, new Date()) : null;
-  const totalDaysAllowed = hasYears ? item.intervalYears * 365 : null;
-  const remainingDays =
-    hasYears && daysSince != null ? totalDaysAllowed - daysSince : null;
-  const timePercentUsed =
-    hasYears && daysSince != null ? (daysSince / totalDaysAllowed) * 100 : null;
-  const dueDate = hasYears && item.lastDate ? addYearsISO(item.lastDate, item.intervalYears) : null;
-
-  const percentUsed = timePercentUsed != null ? Math.max(kmPercentUsed, timePercentUsed) : kmPercentUsed;
-  const status = statusFor(remainingKm, remainingDays);
-
-  const statusColorClasses = {
-    good: "text-[#3FA76C] bg-[#3FA76C]/10 border-[#3FA76C]/30",
-    warn: "text-[#D9A54A] bg-[#D9A54A]/10 border-[#D9A54A]/30",
-    danger: "text-[#C1443B] bg-[#C1443B]/10 border-[#C1443B]/30",
-  };
-
-  const cardBgClasses = {
-    good: "bg-[#3FA76C]/[0.06] border-[#3FA76C]/25",
-    warn: "bg-[#D9A54A]/[0.07] border-[#D9A54A]/30",
-    danger: "bg-[#C1443B]/[0.08] border-[#C1443B]/35",
-  };
-
-  const MAX_HISTORY = 10;
-
-  function pushToHistory(prevHistory) {
-    // Only log a history entry if there was a real previous record to keep.
-    if (item.lastKm === "" || item.lastKm == null) return prevHistory || [];
-    const entry = { km: item.lastKm, date: item.lastDate };
-    return [entry, ...(prevHistory || [])].slice(0, MAX_HISTORY);
-  }
-
-  function save() {
-    const newLastKm = draftKm === "" ? "" : Number(draftKm) || 0;
-    const changed = newLastKm !== item.lastKm || draftDate !== item.lastDate;
-    onEdit(item.id, {
-      lastKm: newLastKm,
-      lastDate: draftDate,
-      intervalKm: Number(draftInterval) || item.intervalKm,
-      intervalYears: draftYears === "" ? null : Number(draftYears) || null,
-      history: changed ? pushToHistory(item.history) : item.history,
-    });
-    setEditing(false);
-  }
-
-  function markChangedToday() {
-    const km = Number(currentKm) || 0;
-    onEdit(item.id, { lastKm: km, lastDate: todayISO(), history: pushToHistory(item.history) });
-  }
-
-  return (
-    <div
-      className={`relative rounded-2xl border p-5 flex flex-col gap-4 shadow-lg shadow-black/25 transition-colors duration-500 ${cardBgClasses[status]}`}
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="shrink-0 w-10 h-10 rounded-xl bg-[#2A2430] border border-[#3A3340] flex items-center justify-center text-[#D9A54A]">
-            <Icon name={item.icon} className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-[Cairo] font-bold text-[#F3ECDF] text-base leading-tight">
-              {item.name}
-            </h3>
-            <p className="text-xs text-[#A79C93] font-[Tajawal] mt-0.5">
-              كل {formatKm(item.intervalKm)} كم
-              {hasYears ? ` أو كل ${item.intervalYears} سنوات (أيهما أقرب)` : ""}
-            </p>
-          </div>
-        </div>
-        <span
-          className={`text-[11px] font-[Tajawal] font-bold px-2.5 py-1 rounded-full border ${statusColorClasses[status]} flex items-center gap-1`}
-        >
-          <Icon name={status === "good" ? "check" : "warn"} className="w-3 h-3" />
-          {statusLabel[status]}
-        </span>
-      </div>
-
-      <Gauge percent={percentUsed} status={status} />
-
-      <div className="grid grid-cols-2 gap-3 text-center -mt-2">
-        <div>
-          <p
-            className={`text-[10px] font-[Tajawal] ${
-              remainingKm <= 0 ? "text-[#C1443B] font-bold" : "text-[#A79C93]"
-            }`}
-          >
-            {remainingKm <= 0 ? "تجاوز الموعد بـ" : "المتبقي حتى التغيير"}
-          </p>
-          <p
-            className={`font-[Cairo] font-bold text-lg ${
-              remainingKm <= 0 ? "text-[#C1443B]" : "text-[#F3ECDF]"
-            }`}
-          >
-            {formatKm(Math.abs(remainingKm))}{" "}
-            <span className={`text-xs font-[Tajawal] ${remainingKm <= 0 ? "text-[#C1443B]" : "text-[#A79C93]"}`}>
-              كم
-            </span>
-          </p>
-        </div>
-        <div>
-          <p className="text-[10px] text-[#A79C93] font-[Tajawal]">قُطع منذ آخر تغيير</p>
-          <p className="font-[Cairo] font-bold text-[#F3ECDF] text-lg">
-            {formatKm(sinceChange)} <span className="text-xs text-[#A79C93] font-[Tajawal]">كم</span>
-          </p>
-        </div>
-      </div>
-
-      {hasYears && (
-        <div className="text-xs font-[Tajawal] text-center -mt-2">
-          {dueDate ? (
-            <span className={remainingDays <= 0 ? "text-[#C1443B] font-bold" : "text-[#A79C93]"}>
-              الموعد الزمني: {formatDateAr(dueDate.toISOString().slice(0, 10))}
-              {remainingDays != null && remainingDays <= 0 &&
-                ` (متجاوَز بـ ${Math.abs(remainingDays)} يوم)`}
-            </span>
-          ) : (
-            <span className="text-[#A79C93]">أدخل تاريخ آخر تغيير لحساب الموعد الزمني</span>
-          )}
-        </div>
-      )}
-
-      <div className="text-xs text-[#A79C93] font-[Tajawal] border-t border-[#3A3340] pt-3 flex items-center justify-between">
-        <span>
-          آخر تغيير:{" "}
-          <span className="text-[#D8CFC3]">
-            {item.lastKm === "" || item.lastKm == null ? "—" : `${formatKm(item.lastKm)} كم`}
-          </span>
-        </span>
-        <span>{formatDateAr(item.lastDate)}</span>
-      </div>
-
-      {item.history && item.history.length > 0 && (
-        <div className="text-xs font-[Tajawal] -mt-2">
-          <p className="text-[#7A7168] mb-1">تغييرات سابقة</p>
-          <div className="flex flex-col gap-1">
-            {item.history.map((h, i) => (
-              <div
-                key={`${h.date}-${h.km}-${i}`}
-                className="flex items-center justify-between text-[#7A7168] opacity-80"
-              >
-                <span>{h.km === "" || h.km == null ? "—" : `${formatKm(h.km)} كم`}</span>
-                <span>{formatDateAr(h.date)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {(status === "warn" || status === "danger") && (
-        <button
-          onClick={() => downloadReminder(item, remainingKm, remainingDays, currentKm)}
-          className={`flex items-center justify-center gap-2 text-sm font-[Tajawal] font-bold rounded-xl border py-2.5 transition-colors ${
-            status === "danger"
-
-              ? "border-[#C1443B]/40 text-[#C1443B] hover:bg-[#C1443B]/10"
-              : "border-[#D9A54A]/40 text-[#D9A54A] hover:bg-[#D9A54A]/10"
-          }`}
-        >
-          <Icon name="warn" className="w-4 h-4" />
-          إرسال تذكير إلى تقويم الهاتف
-        </button>
-      )}
-
-      {!editing ? (
-        <div className="flex gap-2">
-          <button
-            onClick={markChangedToday}
-            disabled={currentKm === "" || currentKm == null}
-            className="flex-1 text-sm font-[Tajawal] font-bold rounded-xl bg-[#D9A54A] text-[#211D26] py-2.5 hover:bg-[#E5BD73] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {currentKm === "" || currentKm == null
-              ? "أدخل قراءة العداد أولًا"
-              : `تم التغيير اليوم بعداد ${formatKm(currentKm)} كم`}
-          </button>
-          <button
-            onClick={() => setEditing(true)}
-            className="text-sm font-[Tajawal] rounded-xl border border-[#3A3340] text-[#D8CFC3] px-3 hover:bg-[#2A2430] transition-colors"
-          >
-            تعديل
-          </button>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2 bg-[#18141C] rounded-xl p-3 border border-[#3A3340]">
-          <label className="text-xs font-[Tajawal] text-[#A79C93] flex flex-col gap-1">
-            الكيلومترات عند آخر تغيير
-            <input
-              type="number"
-              inputMode="numeric"
-              value={draftKm}
-              onChange={(e) => setDraftKm(e.target.value)}
-              placeholder="مثال: 42000"
-              className="bg-[#211D26] border border-[#3A3340] rounded-lg px-3 py-2 text-[#F3ECDF] font-[Tajawal] text-sm focus:outline-none focus:ring-2 focus:ring-[#D9A54A]"
-            />
-          </label>
-          <label className="text-xs font-[Tajawal] text-[#A79C93] flex flex-col gap-1">
-            تاريخ آخر تغيير
-            <input
-              type="date"
-              value={draftDate}
-              onChange={(e) => setDraftDate(e.target.value)}
-              className="bg-[#211D26] border border-[#3A3340] rounded-lg px-3 py-2 text-[#F3ECDF] font-[Tajawal] text-sm focus:outline-none focus:ring-2 focus:ring-[#D9A54A]"
-            />
-          </label>
-          <label className="text-xs font-[Tajawal] text-[#A79C93] flex flex-col gap-1">
-            دورية التغيير (كم)
-            <input
-              type="number"
-              inputMode="numeric"
-              value={draftInterval}
-              onChange={(e) => setDraftInterval(e.target.value)}
-              className="bg-[#211D26] border border-[#3A3340] rounded-lg px-3 py-2 text-[#F3ECDF] font-[Tajawal] text-sm focus:outline-none focus:ring-2 focus:ring-[#D9A54A]"
-            />
-          </label>
-          <label className="text-xs font-[Tajawal] text-[#A79C93] flex flex-col gap-1">
-            الدورية الزمنية (سنوات) — اختياري
-            <input
-              type="number"
-              inputMode="numeric"
-              value={draftYears}
-              onChange={(e) => setDraftYears(e.target.value)}
-              placeholder="مثال: 5"
-              className="bg-[#211D26] border border-[#3A3340] rounded-lg px-3 py-2 text-[#F3ECDF] font-[Tajawal] text-sm focus:outline-none focus:ring-2 focus:ring-[#D9A54A]"
-            />
-          </label>
-          <div className="flex gap-2 mt-1">
-            <button
-              onClick={save}
-              className="flex-1 text-sm font-[Tajawal] font-bold rounded-lg bg-[#3FA76C] text-[#18141C] py-2 hover:bg-[#4FBF80] transition-colors"
-            >
-              حفظ
-            </button>
-            <button
-              onClick={() => setEditing(false)}
-              className="flex-1 text-sm font-[Tajawal] rounded-lg border border-[#3A3340] text-[#D8CFC3] py-2 hover:bg-[#2A2430] transition-colors"
-            >
-              إلغاء
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
+/* ---------- Email report ---------- */
 function buildFullReportText(items, currentKm) {
-  const lines = [`تقرير صيانة السيارة — قراءة العداد: ${formatKm(currentKm)} كم`, ""];
-  items.forEach((it) => {
-    const since = Math.max(0, (Number(currentKm) || 0) - (Number(it.lastKm) || 0));
-    const remainingKm = it.intervalKm - since;
-    const lastKmText = it.lastKm === "" || it.lastKm == null ? "غير محدد" : `${formatKm(it.lastKm)} كم`;
-    const lastDateText = it.lastDate ? formatDateAr(it.lastDate) : "غير محدد";
-    let statusText;
-    if (remainingKm <= GAUGE_RED_KM) statusText = "مستحقة الآن أو قريبة جدًا";
-    else if (remainingKm <= GAUGE_ORANGE_KM) statusText = "قاربت على الاستحقاق";
-    else statusText = "بحالة جيدة";
-
-    lines.push(`• ${it.name}`);
-    lines.push(`  آخر تغيير: ${lastKmText} — ${lastDateText}`);
-    lines.push(
-      `  الدورية: كل ${formatKm(it.intervalKm)} كم${it.intervalYears ? ` أو ${it.intervalYears} سنوات` : ""}`
-    );
-    lines.push(
-      `  ${remainingKm <= 0 ? "تجاوز الموعد بـ" : "المتبقي"}: ${formatKm(Math.abs(remainingKm))} كم — ${statusText}`
-    );
+  var lines = ["تقرير صيانة السيارة — قراءة العداد: " + formatKm(currentKm) + " كم", ""];
+  items.forEach(function (it) {
+    var since = Math.max(0, (Number(currentKm) || 0) - (Number(it.lastKm) || 0));
+    var remainingKm = it.intervalKm - since;
+    var lastKmText = (it.lastKm === "" || it.lastKm == null) ? "غير محدد" : formatKm(it.lastKm) + " كم";
+    var lastDateText = it.lastDate ? formatDateAr(it.lastDate) : "غير محدد";
+    var statusText = remainingKm <= GAUGE_RED_KM ? "مستحقة الآن أو قريبة جدًا" :
+      (remainingKm <= GAUGE_ORANGE_KM ? "قاربت على الاستحقاق" : "بحالة جيدة");
+    lines.push("• " + it.name);
+    lines.push("  آخر تغيير: " + lastKmText + " — " + lastDateText);
+    lines.push("  الدورية: كل " + formatKm(it.intervalKm) + " كم" + (it.intervalYears ? " أو " + it.intervalYears + " سنوات" : ""));
+    lines.push("  " + (remainingKm <= 0 ? "تجاوز الموعد بـ" : "المتبقي") + ": " + formatKm(Math.abs(remainingKm)) + " كم — " + statusText);
     lines.push("");
   });
   return lines.join("\n");
 }
-
-// Opens the phone's email app with a ready-made report. A web app running
-// in a sandboxed browser tab can't send email on its own — this hands the
-// draft off to the user's mail app, and they tap send.
 function sendReportEmail(email, items, currentKm) {
   if (!email) return;
-  const subject = encodeURIComponent("تقرير صيانة السيارة");
-  const body = encodeURIComponent(buildFullReportText(items, currentKm));
-  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+  var subject = encodeURIComponent("تقرير صيانة السيارة");
+  var body = encodeURIComponent(buildFullReportText(items, currentKm));
+  window.location.href = "mailto:" + email + "?subject=" + subject + "&body=" + body;
 }
 
-function CarMaintenance() {
-  const [items, setItems] = useState(DEFAULT_ITEMS);
-  const [currentKm, setCurrentKm] = useState("");
-  const [email, setEmail] = useState("");
-  const [showEmail, setShowEmail] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [saveState, setSaveState] = useState("idle"); // idle | saving | saved | error
+/* ---------- State ---------- */
+var state = {
+  items: DEFAULT_ITEMS,
+  currentKm: "",
+  email: "",
+  showEmail: false,
+  editingId: null
+};
 
-  useEffect(() => {
-    ensureFonts();
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const raw = window.localStorage.getItem(STORAGE_KEY);
-        if (!cancelled && raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed.items) setItems(parsed.items);
-          if (typeof parsed.currentKm === "number") setCurrentKm(parsed.currentKm);
-          if (typeof parsed.email === "string") setEmail(parsed.email);
-        }
-      } catch (e) {
-        // no existing data yet — fine, use defaults
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+function loadState() {
+  try {
+    var raw = window.localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      if (parsed.items) state.items = parsed.items;
+      if (typeof parsed.currentKm === "number") state.currentKm = parsed.currentKm;
+      if (typeof parsed.email === "string") state.email = parsed.email;
     }
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  } catch (e) { /* first run or corrupt data — start fresh */ }
+}
+var saveState = "idle";
+function persist() {
+  saveState = "saving"; renderSaveNote();
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ items: state.items, currentKm: state.currentKm, email: state.email }));
+    saveState = "saved";
+  } catch (e) { saveState = "error"; }
+  renderSaveNote();
+}
+function renderSaveNote() {
+  var el = document.getElementById("save-note");
+  if (!el) return;
+  el.textContent = saveState === "saving" ? "جارٍ الحفظ…" : saveState === "saved" ? "تم الحفظ" : saveState === "error" ? "تعذّر الحفظ" : "";
+}
 
-  const persist = useCallback((nextItems, nextKm, nextEmail) => {
-    setSaveState("saving");
-    try {
-      window.localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ items: nextItems, currentKm: nextKm, email: nextEmail })
-      );
-      setSaveState("saved");
-    } catch (e) {
-      setSaveState("error");
+function pushToHistory(item) {
+  if (item.lastKm === "" || item.lastKm == null) return item.history || [];
+  var entry = { km: item.lastKm, date: item.lastDate };
+  return [entry].concat(item.history || []).slice(0, MAX_HISTORY);
+}
+
+/* ---------- Render ---------- */
+function computeTiming(item, currentKm) {
+  var sinceChange = Math.max(0, (Number(currentKm) || 0) - (Number(item.lastKm) || 0));
+  var remainingKm = item.intervalKm - sinceChange;
+  var kmPercentUsed = item.intervalKm > 0 ? (sinceChange / item.intervalKm) * 100 : 0;
+  var hasYears = !!item.intervalYears;
+  var daysSince = (hasYears && item.lastDate) ? daysBetween(item.lastDate, new Date()) : null;
+  var totalDaysAllowed = hasYears ? item.intervalYears * 365 : null;
+  var remainingDays = (hasYears && daysSince != null) ? totalDaysAllowed - daysSince : null;
+  var timePercentUsed = (hasYears && daysSince != null) ? (daysSince / totalDaysAllowed) * 100 : null;
+  var dueDate = (hasYears && item.lastDate) ? addYearsISO(item.lastDate, item.intervalYears) : null;
+  var percentUsed = timePercentUsed != null ? Math.max(kmPercentUsed, timePercentUsed) : kmPercentUsed;
+  var status = statusFor(remainingKm, remainingDays);
+  return { sinceChange: sinceChange, remainingKm: remainingKm, hasYears: hasYears, remainingDays: remainingDays,
+    dueDate: dueDate, percentUsed: percentUsed, status: status };
+}
+
+function cardHTML(item) {
+  var t = computeTiming(item, state.currentKm);
+  var lastKmText = (item.lastKm === "" || item.lastKm == null) ? "—" : formatKm(item.lastKm) + " كم";
+  var editing = state.editingId === item.id;
+
+  var historyHTML = "";
+  if (item.history && item.history.length > 0) {
+    historyHTML = '<div class="history-block"><p>تغييرات سابقة</p><div style="display:flex;flex-direction:column;gap:4px;">' +
+      item.history.map(function (h) {
+        var hkm = (h.km === "" || h.km == null) ? "—" : formatKm(h.km) + " كم";
+        return '<div class="history-row"><span>' + hkm + '</span><span>' + formatDateAr(h.date) + '</span></div>';
+      }).join("") + '</div></div>';
+  }
+
+  var timeRowHTML = "";
+  if (t.hasYears) {
+    if (t.dueDate) {
+      var overdue = t.remainingDays != null && t.remainingDays <= 0;
+      timeRowHTML = '<div class="time-row"' + (overdue ? ' style="color:var(--danger);font-weight:700;"' : '') + '>' +
+        'الموعد الزمني: ' + formatDateAr(t.dueDate.toISOString().slice(0,10)) +
+        (overdue ? ' (متجاوَز بـ ' + Math.abs(t.remainingDays) + ' يوم)' : '') + '</div>';
+    } else {
+      timeRowHTML = '<div class="time-row">أدخل تاريخ آخر تغيير لحساب الموعد الزمني</div>';
     }
-  }, []);
-
-  function handleEdit(id, patch) {
-    setItems((prev) => {
-      const next = prev.map((it) => (it.id === id ? { ...it, ...patch } : it));
-      persist(next, currentKm, email);
-      return next;
-    });
   }
 
-  function handleKmChange(value) {
-    const num = Number(value);
-    setCurrentKm(value === "" ? "" : num);
-    persist(items, value === "" ? 0 : num, email);
+  var remindHTML = "";
+  if (t.status === "warn" || t.status === "danger") {
+    remindHTML = '<button class="remind-btn ' + t.status + '" data-action="remind" data-id="' + item.id + '">' +
+      svgIcon("warn", "") + ' إرسال تذكير إلى تقويم الهاتف</button>';
   }
 
-  function handleEmailChange(value) {
-    setEmail(value);
-    persist(items, currentKm, value);
+  var editHTML;
+  if (editing) {
+    editHTML =
+      '<div class="edit-panel">' +
+        '<label>الكيلومترات عند آخر تغيير<input type="number" inputmode="numeric" id="km-in-' + item.id + '" value="' + (item.lastKm === "" ? "" : item.lastKm) + '" placeholder="مثال: 42000"/></label>' +
+        '<label>تاريخ آخر تغيير<input type="date" id="date-in-' + item.id + '" value="' + (item.lastDate || todayISO()) + '"/></label>' +
+        '<label>دورية التغيير (كم)<input type="number" inputmode="numeric" id="interval-in-' + item.id + '" value="' + item.intervalKm + '"/></label>' +
+        '<label>الدورية الزمنية (سنوات) — اختياري<input type="number" inputmode="numeric" id="years-in-' + item.id + '" value="' + (item.intervalYears || "") + '" placeholder="مثال: 5"/></label>' +
+        '<div class="edit-actions">' +
+          '<button class="save-btn" data-action="save" data-id="' + item.id + '">حفظ</button>' +
+          '<button class="cancel-btn" data-action="cancel" data-id="' + item.id + '">إلغاء</button>' +
+        '</div>' +
+      '</div>';
+  } else {
+    var markDisabled = (state.currentKm === "" || state.currentKm == null) ? "disabled" : "";
+    var markLabel = (state.currentKm === "" || state.currentKm == null) ? "أدخل قراءة العداد أولًا" :
+      "تم التغيير اليوم بعداد " + formatKm(state.currentKm) + " كم";
+    editHTML =
+      '<div class="action-row">' +
+        '<button class="mark-btn" data-action="mark-today" data-id="' + item.id + '" ' + markDisabled + '>' + markLabel + '</button>' +
+        '<button class="edit-btn" data-action="edit" data-id="' + item.id + '">تعديل</button>' +
+      '</div>';
   }
-
-  function itemTiming(it) {
-    const since = Math.max(0, (Number(currentKm) || 0) - (Number(it.lastKm) || 0));
-    const remainingKm = it.intervalKm - since;
-    let remainingDays = null;
-    if (it.intervalYears && it.lastDate) {
-      const daysSince = daysBetween(it.lastDate, new Date());
-      if (daysSince != null) remainingDays = it.intervalYears * 365 - daysSince;
-    }
-    return { remainingKm, remainingDays };
-  }
-
-  const dueCount = items.filter((it) => {
-    const { remainingKm, remainingDays } = itemTiming(it);
-    return remainingKm <= GAUGE_RED_KM || (remainingDays != null && remainingDays <= 0);
-  }).length;
-
-  const soonCount = items.filter((it) => {
-    const { remainingKm, remainingDays } = itemTiming(it);
-    const due = remainingKm <= GAUGE_RED_KM || (remainingDays != null && remainingDays <= 0);
-    if (due) return false;
-    return remainingKm <= GAUGE_ORANGE_KM;
-  }).length;
 
   return (
-    <div
-      dir="rtl"
-      className="min-h-screen w-full bg-gradient-to-b from-[#221D24] via-[#1A1712] to-[#120F0C] text-[#F3ECDF]"
-      style={{ fontFamily: "'Tajawal', sans-serif" }}
-    >
-      <div className="max-w-3xl mx-auto px-4 py-8 sm:py-10">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 mb-6">
-          <div>
-            <div className="flex items-center gap-2 text-[#D9A54A] mb-1">
-              <Icon name="gauge" className="w-6 h-6" />
-              <span className="text-xs font-[Tajawal] font-bold tracking-wide text-[#A79C93]">
-                لوحة متابعة الصيانة
-              </span>
-            </div>
-            <h1 className="font-[Cairo] font-black text-2xl sm:text-3xl text-[#F3ECDF]">
-              صيانة سيارتي
-            </h1>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => setShowEmail((v) => !v)}
-              title="إرسال تقرير بالبريد الإلكتروني"
-              className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-colors ${
-                showEmail
-                  ? "border-[#D9A54A]/50 bg-[#D9A54A]/10 text-[#D9A54A]"
-                  : "border-[#3A3340] bg-[#211D26] text-[#A79C93] hover:text-[#D9A54A] hover:border-[#D9A54A]/40"
-              }`}
-            >
-              <Icon name="mail" className="w-4 h-4" />
-            </button>
-            <p className="text-[10px] text-[#A79C93] font-[Tajawal] h-4">
-              {saveState === "saving" && "جارٍ الحفظ…"}
-              {saveState === "saved" && "تم الحفظ"}
-              {saveState === "error" && "تعذّر الحفظ"}
-            </p>
-          </div>
-        </div>
-
-        {/* Odometer input */}
-        <div className="rounded-2xl border border-[#3A3340] bg-[#211D26] p-5 mb-6 flex flex-col sm:flex-row sm:items-center gap-4 shadow-lg shadow-black/20">
-          <div className="flex-1">
-            <label className="text-sm font-[Tajawal] font-bold text-[#D8CFC3] block mb-2">
-              قراءة العداد الحالية (كم)
-            </label>
-            <input
-              type="number"
-              inputMode="numeric"
-              value={currentKm}
-              onChange={(e) => handleKmChange(e.target.value)}
-              placeholder="مثال: 45000"
-              className="w-full bg-[#18141C] border border-[#3A3340] rounded-xl px-4 py-3 text-xl font-[Cairo] font-bold text-[#F3ECDF] focus:outline-none focus:ring-2 focus:ring-[#D9A54A]"
-            />
-          </div>
-          <div className="flex gap-3">
-            <div className="rounded-xl border border-[#3A3340] bg-[#18141C] px-4 py-3 text-center min-w-[84px]">
-              <p className="font-[Cairo] font-black text-xl text-[#C1443B]">{dueCount}</p>
-              <p className="text-[10px] text-[#A79C93] font-[Tajawal] mt-0.5">مستحقة</p>
-            </div>
-            <div className="rounded-xl border border-[#3A3340] bg-[#18141C] px-4 py-3 text-center min-w-[84px]">
-              <p className="font-[Cairo] font-black text-xl text-[#D9A54A]">{soonCount}</p>
-              <p className="text-[10px] text-[#A79C93] font-[Tajawal] mt-0.5">قريبة</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Email report — hidden until the envelope icon is tapped */}
-        {showEmail && (
-          <>
-            <div className="rounded-2xl border border-[#3A3340] bg-[#211D26] p-5 mb-2 flex flex-col sm:flex-row sm:items-end gap-4 shadow-lg shadow-black/20">
-              <div className="flex-1">
-                <label className="text-sm font-[Tajawal] font-bold text-[#D8CFC3] block mb-2">
-                  البريد الإلكتروني لإرسال تقرير الصيانة
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => handleEmailChange(e.target.value)}
-                  placeholder="example@email.com"
-                  className="w-full bg-[#18141C] border border-[#3A3340] rounded-xl px-4 py-3 text-[#F3ECDF] font-[Tajawal] focus:outline-none focus:ring-2 focus:ring-[#D9A54A]"
-                />
-              </div>
-              <button
-                onClick={() => sendReportEmail(email, items, currentKm)}
-                disabled={!email}
-                className="shrink-0 text-sm font-[Tajawal] font-bold rounded-xl bg-[#3FA76C] text-[#18141C] px-5 py-3 hover:bg-[#4FBF80] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                إرسال التقرير الآن
-              </button>
-            </div>
-            <p className="text-[11px] text-[#7A7168] font-[Tajawal] mb-6">
-              سيفتح هذا تطبيق البريد على هاتفك برسالة جاهزة تضم كل بيانات الصيانة — لأسباب أمنية لا يمكن لأي
-              صفحة ويب إرسال البريد تلقائيًا دون أن تفتح تطبيق البريد وتضغط إرسال بنفسك.
-            </p>
-          </>
-        )}
-
-        {loading ? (
-          <div className="text-center text-[#A79C93] font-[Tajawal] py-16">جارٍ التحميل…</div>
-        ) : (
-          <div className="grid sm:grid-cols-2 gap-4">
-            {items.map((item) => (
-              <MaintenanceCard key={item.id} item={item} currentKm={currentKm} onEdit={handleEdit} />
-            ))}
-          </div>
-        )}
-
-        <p className="text-center text-[11px] text-[#7A7168] font-[Tajawal] mt-8">
-          بياناتك محفوظة تلقائيًا على هذا الجهاز
-        </p>
-      </div>
-    </div>
+    '<div class="card ' + t.status + '">' +
+      '<div class="card-head">' +
+        '<div class="card-title">' +
+          '<div class="card-icon">' + svgIcon(item.icon, "") + '</div>' +
+          '<div><h3>' + item.name + '</h3><p>كل ' + formatKm(item.intervalKm) + ' كم' +
+            (t.hasYears ? ' أو كل ' + item.intervalYears + ' سنوات (أيهما أقرب)' : '') + '</p></div>' +
+        '</div>' +
+        '<span class="badge ' + t.status + '">' + svgIcon(t.status === "good" ? "check" : "warn", "") + ' ' + STATUS_LABEL[t.status] + '</span>' +
+      '</div>' +
+      gaugeSVG(t.percentUsed, t.status) +
+      '<div class="stats2">' +
+        '<div' + (t.remainingKm <= 0 ? ' class="due-danger"' : '') + '>' +
+          '<small>' + (t.remainingKm <= 0 ? "تجاوز الموعد بـ" : "المتبقي حتى التغيير") + '</small>' +
+          '<b>' + formatKm(Math.abs(t.remainingKm)) + ' <span style="font-size:12px;color:var(--text-muted);font-weight:400;">كم</span></b>' +
+        '</div>' +
+        '<div><small>قُطع منذ آخر تغيير</small><b>' + formatKm(t.sinceChange) + ' <span style="font-size:12px;color:var(--text-muted);font-weight:400;">كم</span></b></div>' +
+      '</div>' +
+      timeRowHTML +
+      '<div class="last-row"><span>آخر تغيير: <span class="val">' + lastKmText + '</span></span><span>' + formatDateAr(item.lastDate) + '</span></div>' +
+      historyHTML +
+      remindHTML +
+      editHTML +
+    '</div>'
   );
 }
 
-try {
-  const root = ReactDOM.createRoot(document.getElementById("root"));
-  root.render(<CarMaintenance />);
-} catch (err) {
-  document.getElementById("diag").textContent =
-    "خطأ في تشغيل التطبيق:\n" + (err && err.message ? err.message : String(err));
-  document.getElementById("diag").style.display = "block";
+function renderApp() {
+  var dueCount = 0, soonCount = 0;
+  state.items.forEach(function (it) {
+    var t = computeTiming(it, state.currentKm);
+    var due = t.remainingKm <= GAUGE_RED_KM || (t.remainingDays != null && t.remainingDays <= 0);
+    if (due) dueCount++;
+    else if (t.remainingKm <= GAUGE_ORANGE_KM) soonCount++;
+  });
+
+  var emailSection = "";
+  if (state.showEmail) {
+    emailSection =
+      '<div class="panel email-panel">' +
+        '<div style="flex:1;"><label class="field-label">البريد الإلكتروني لإرسال تقرير الصيانة</label>' +
+          '<input type="email" id="email-input" value="' + (state.email || "") + '" placeholder="example@email.com"/></div>' +
+        '<button class="btn btn-primary" id="send-report-btn" ' + (state.email ? '' : 'disabled') + '>إرسال التقرير الآن</button>' +
+      '</div>' +
+      '<p class="hint">سيفتح هذا تطبيق البريد على هاتفك برسالة جاهزة تضم كل بيانات الصيانة — لأسباب أمنية لا يمكن لأي صفحة ويب إرسال البريد تلقائيًا دون أن تفتح تطبيق البريد وتضغط إرسال بنفسك.</p>';
+  }
+
+  var html =
+    '<div class="wrap">' +
+      '<div class="header-row">' +
+        '<div><div class="eyebrow">' + svgIcon("gauge", "") + '<span>لوحة متابعة الصيانة</span></div><h1>صيانة سيارتي</h1></div>' +
+        '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">' +
+          '<button class="icon-btn' + (state.showEmail ? ' active' : '') + '" id="toggle-email-btn" title="إرسال تقرير بالبريد الإلكتروني">' + svgIcon("mail", "") + '</button>' +
+          '<p class="save-note" id="save-note"></p>' +
+        '</div>' +
+      '</div>' +
+      '<div class="panel odo-row">' +
+        '<div style="flex:1;"><label class="field-label">قراءة العداد الحالية (كم)</label>' +
+          '<input type="number" inputmode="numeric" class="odo-input" id="current-km-input" value="' + (state.currentKm === "" ? "" : state.currentKm) + '" placeholder="مثال: 45000"/></div>' +
+        '<div class="stat-pair">' +
+          '<div class="stat-box"><b style="color:var(--danger);">' + dueCount + '</b><small>مستحقة</small></div>' +
+          '<div class="stat-box"><b style="color:var(--warn);">' + soonCount + '</b><small>قريبة</small></div>' +
+        '</div>' +
+      '</div>' +
+      emailSection +
+      '<div class="grid">' + state.items.map(cardHTML).join("") + '</div>' +
+      '<p class="footer-note">بياناتك محفوظة تلقائيًا على هذا الجهاز</p>' +
+    '</div>';
+
+  document.getElementById("root").innerHTML = html;
+  renderSaveNote();
 }
+
+/* ---------- Events (delegated) ---------- */
+document.addEventListener("click", function (e) {
+  var btn = e.target.closest("[data-action]");
+  if (btn) {
+    var action = btn.getAttribute("data-action");
+    var id = btn.getAttribute("data-id");
+    var item = state.items.find(function (it) { return it.id === id; });
+
+    if (action === "edit") { state.editingId = id; renderApp(); return; }
+    if (action === "cancel") { state.editingId = null; renderApp(); return; }
+
+    if (action === "save" && item) {
+      var kmVal = document.getElementById("km-in-" + id).value;
+      var dateVal = document.getElementById("date-in-" + id).value;
+      var intervalVal = document.getElementById("interval-in-" + id).value;
+      var yearsVal = document.getElementById("years-in-" + id).value;
+      var newLastKm = kmVal === "" ? "" : (Number(kmVal) || 0);
+      var changed = newLastKm !== item.lastKm || dateVal !== item.lastDate;
+      if (changed) item.history = pushToHistory(item);
+      item.lastKm = newLastKm;
+      item.lastDate = dateVal;
+      item.intervalKm = Number(intervalVal) || item.intervalKm;
+      item.intervalYears = yearsVal === "" ? null : (Number(yearsVal) || null);
+      state.editingId = null;
+      persist(); renderApp(); return;
+    }
+
+    if (action === "mark-today" && item) {
+      var km = Number(state.currentKm) || 0;
+      item.history = pushToHistory(item);
+      item.lastKm = km;
+      item.lastDate = todayISO();
+      persist(); renderApp(); return;
+    }
+
+    if (action === "remind" && item) {
+      var t = computeTiming(item, state.currentKm);
+      downloadReminder(item, t.remainingKm, t.remainingDays, state.currentKm);
+      return;
+    }
+  }
+
+  if (e.target.id === "toggle-email-btn") { state.showEmail = !state.showEmail; renderApp(); return; }
+  if (e.target.id === "send-report-btn") { sendReportEmail(state.email, state.items, state.currentKm); return; }
+});
+
+document.addEventListener("input", function (e) {
+  if (e.target.id === "current-km-input") {
+    var v = e.target.value;
+    state.currentKm = v === "" ? "" : Number(v);
+    persist();
+    // Re-render just the parts that depend on currentKm without losing focus:
+    // simplest robust approach is a full re-render; the km input loses focus,
+    // so we restore it and the caret position afterward.
+    var caret = e.target.selectionStart;
+    renderApp();
+    var el = document.getElementById("current-km-input");
+    if (el) { el.focus(); try { el.setSelectionRange(caret, caret); } catch (err) {} }
+  }
+  if (e.target.id === "email-input") {
+    state.email = e.target.value;
+    persist();
+    // Only the disabled-state of the send button depends on this; toggle it
+    // directly instead of a full re-render so the input never loses focus.
+    var sendBtn = document.getElementById("send-report-btn");
+    if (sendBtn) sendBtn.disabled = !state.email;
+  }
+});
+
+/* ---------- Init ---------- */
+loadState();
+renderApp();
 </script>
 </body>
 </html>
