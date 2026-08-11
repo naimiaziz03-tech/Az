@@ -1,18 +1,15 @@
 {
-  "name": "aziz-attendance",
+  "name": "Az",
   "version": "1.0.0",
-  "description": "سجلّ حضور عزيز — تطبيق حضور يومي",
   "private": true,
   "scripts": {
-    "sync": "npx cap sync",
-    "open:android": "npx cap open android",
-    "open:ios": "npx cap open ios"
+    "build": "mkdir -p www && cp index.html www/index.html"
   },
   "dependencies": {
-    "@capacitor/core": "^6.0.0"
+    "@capacitor/core": "^7.4.4"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.0.0",
-    "@capacitor/android": "^6.0.0"
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/android": "^7.4.4"
   }
 }
