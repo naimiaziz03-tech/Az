@@ -1,6 +1,6 @@
 {
   "appId": "com.aziz.attendance",
-  "appName": "سجلّ حضور عزيز",
+  "appName": "Attendance ",
   "webDir": "www",
   "bundledWebRuntime": false,
   "server": {
