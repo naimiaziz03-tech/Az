@@ -25,7 +25,17 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Check Java version
+      - name: Check files
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Files:"
+          ls -la
+          echo "All files:"
+          find . -maxdepth 2 -type f | sort
+
+      - name: Build web app
+        run: npm run build - name: Check Java version
         run: |
           java -version
           echo "JAVA_HOME=$JAVA_HOME"
