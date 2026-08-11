@@ -14,17 +14,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup Java 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-
       - name: Check files
         run: |
           echo "Current directory:"
@@ -34,8 +23,18 @@ jobs:
           echo "All files:"
           find . -maxdepth 2 -type f | sort
 
-      - name: Build web app
-        run: npm run build - name: Check Java version
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Check Java version
         run: |
           java -version
           echo "JAVA_HOME=$JAVA_HOME"
@@ -51,11 +50,6 @@ jobs:
 
       - name: Sync Capacitor
         run: npx cap sync android
-
-      - name: Check Gradle Java version
-        run: |
-          cd android
-          ./gradlew --version
 
       - name: Build APK
         run: |
