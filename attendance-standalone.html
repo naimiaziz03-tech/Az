@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>سجلّ الحضور — عزيز</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@700;800&display=swap');
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Tajawal', sans-serif;
+    background: #F5F6F2;
+    color: #1B2430;
+    padding-bottom: 60px;
+  }
+  .font-display { font-family: 'Cairo', 'Tajawal', sans-serif; }
+
+  header {
+    background: #0B4F4C;
+    color: #fff;
+    text-align: center;
+    padding: 40px 20px 32px;
+    position: relative;
+  }
+  .data-btn {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: #126762;
+    border: 1px solid #2E8A83;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    color: #fff;
+  }
+  .data-btn:hover { background: #158079; }
+  .eyebrow { color: #9FC7C0; font-size: 12px; letter-spacing: 2px; margin-bottom: 8px; }
+  .avatar {
+    width: 64px; height: 64px; border-radius: 999px;
+    background: #126762; border: 1px solid #2E8A83;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 12px; font-weight: 800; font-size: 24px;
+  }
+  .name-badge {
+    font-weight: 800; font-size: 24px; color: #000;
+    background: #fff; display: inline-block;
+    padding: 4px 16px; border-radius: 999px;
+  }
+  .tabs {
+    display: flex; gap: 4px; background: #0A4441;
+    border-radius: 12px; padding: 4px; margin: 24px auto 0; max-width: 380px;
+  }
+  .tab-btn {
+    flex: 1; padding: 10px; border-radius: 8px; border: none;
+    background: transparent; color: #B9D6D1; font-size: 14px; font-weight: 500;
+    font-family: inherit; cursor: pointer;
+  }
+  .tab-btn.active { background: #F5F6F2; color: #0B4F4C; }
+
+  main { max-width: 420px; margin: 24px auto 0; padding: 0 20px; }
+  .card {
+    background: #fff; border-radius: 12px; border: 1px solid #E4E6DF;
+    padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+  .card.center { text-align: center; }
+
+  label.field-label { font-size: 12px; color: #8A93A0; display: block; margin-bottom: 4px; }
+  input[type=date] {
+    border: 1px solid #D7DAD3; border-radius: 8px; padding: 6px 12px;
+    font-size: 14px; font-family: inherit; outline: none;
+  }
+  input[type=date]:focus { border-color: #0B4F4C; box-shadow: 0 0 0 3px rgba(11,79,76,0.15); }
+  .date-sub { font-size: 12px; color: #8A93A0; margin: 4px 0 24px; }
+
+  .status-row { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .status-btn {
+    width: 64px; height: 64px; border-radius: 16px; border: 2px solid #E4E6DF;
+    background: #fff; color: #9AA1AB; display: flex; align-items: center; justify-content: center;
+    font-family: 'Cairo', sans-serif; font-size: 15px; font-weight: 800; cursor: pointer;
+    transition: transform .12s ease; padding: 4px; text-align: center;
+  }
+  .status-btn:active { transform: scale(.93); }
+  .status-btn.active-TC { background: #E7F1EC; border-color: #3C7A5D; color: #3C7A5D; }
+  .status-btn.active-RS { background: #FBF0E1; border-color: #C1791F; color: #C1791F; }
+  .status-btn.active-RC { background: #EAF0F8; border-color: #4A6FA5; color: #4A6FA5; }
+  .status-btn.active-DATA { background: #F1EAF8; border-color: #8A5FB0; color: #8A5FB0; font-size: 22px; }
+
+  .saved-flash { font-size: 12px; margin-top: 20px; color: #3C7A5D; opacity: 0; transition: opacity .2s; }
+  .saved-flash.show { opacity: 1; }
+
+  .cp-section { margin-top: 24px; padding-top: 20px; border-top: 1px dashed #D7DAD3; }
+  .cp-title { font-size: 12px; color: #8A93A0; margin-bottom: 12px; }
+  .cp-row { display: flex; justify-content: center; gap: 10px; direction: ltr; }
+  .cp-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .cp-num { font-size: 11px; font-weight: 700; color: #8A93A0; }
+  .cp-btn {
+    width: 48px; height: 48px; border-radius: 8px; border: 2px solid #E4E6DF;
+    background: #fff; color: #C7CCD3; font-size: 18px; font-weight: 700; cursor: pointer;
+  }
+  .cp-btn.active { background: #E7F1EC; border-color: #3C7A5D; color: #3C7A5D; }
+  .cp-total {
+    margin-top: 16px; background: #F5F6F2; border-radius: 8px; padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cp-total span:first-child { font-size: 14px; font-weight: 500; color: #5B6470; }
+  .cp-total span:last-child { font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 18px; color: #0B4F4C; }
+
+  .summary-box { display: flex; align-items: center; justify-content: space-between; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; }
+  .summary-box.green { background: #E7F1EC; }
+  .summary-box.green span:first-child { font-size: 14px; font-weight: 500; color: #3C7A5D; }
+  .summary-box.green span:last-child { font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 18px; color: #3C7A5D; }
+  .summary-box.red { background: #FBEAE8; }
+  .summary-box.red span:first-child { font-size: 14px; font-weight: 500; color: #B5473F; }
+  .summary-box.red span:last-child { font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 18px; color: #B5473F; }
+
+  .empty-state { text-align: center; padding: 40px 0; color: #8A93A0; }
+  .empty-state .emoji { font-size: 32px; margin-bottom: 8px; }
+  .empty-state p.title { font-size: 14px; font-weight: 500; margin: 0 0 4px; }
+  .empty-state p.sub { font-size: 12px; margin: 0; }
+
+  .ledger-row { border-bottom: 1px dashed #D7DAD3; padding: 10px 0; }
+  .ledger-row:last-child { border-bottom: none; }
+  .ledger-row-flex { display: flex; align-items: center; justify-content: space-between; }
+  .pill { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+
+  .year-btn {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; background: #FAFAF8; border-radius: 8px; border: none;
+    font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; margin-bottom: 4px;
+  }
+
+  .monthly-header {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #0B4F4C; border-radius: 8px; padding: 16px; margin-bottom: 16px;
+  }
+  .monthly-header span:first-child { font-size: 14px; font-weight: 500; color: #fff; }
+  .monthly-header span:last-child { font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 24px; color: #fff; }
+
+  .cp-mini-row { display: flex; gap: 6px; direction: ltr; margin-top: 6px; }
+  .cp-mini {
+    width: 24px; height: 24px; border-radius: 4px; font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; background: #F5F6F2; color: #C7CCD3;
+  }
+  .cp-mini.active { background: #E7F1EC; color: #3C7A5D; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    display: none; align-items: center; justify-content: center; padding: 0 20px; z-index: 40;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: #fff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    width: 100%; max-width: 420px; max-height: 80vh; display: flex; flex-direction: column;
+    border: 1px solid #E4E6DF;
+  }
+  .modal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 20px 12px; border-bottom: 1px solid #E4E6DF;
+  }
+  .modal-head-title { display: flex; align-items: center; gap: 8px; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 16px; }
+  .modal-close { background: none; border: none; font-size: 20px; font-weight: 700; cursor: pointer; color: #1B2430; width: 28px; height: 28px; }
+  .modal-body { overflow-y: auto; padding: 12px 20px; flex: 1; }
+  .modal-body p { font-size: 12px; color: #8A93A0; margin: 0 0 12px; }
+  table { width: 100%; font-size: 14px; border-collapse: collapse; }
+  th { text-align: right; font-size: 12px; color: #8A93A0; font-weight: 500; padding: 6px 0; border-bottom: 1px solid #E4E6DF; }
+  td { padding: 8px 0; border-bottom: 1px dashed #D7DAD3; }
+  .modal-foot { padding: 12px 20px; border-top: 1px solid #E4E6DF; background: #FAFAF8; border-radius: 0 0 16px 16px; }
+  .modal-foot p { font-size: 11px; color: #8A93A0; margin: 0; word-break: break-all; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function () {
+  const EMPLOYEE_NAME = "عزيز";
+  const STATUS = {
+    TC: { label: "TC", css: "active-TC" },
+    RS: { label: "RS", css: "active-RS" },
+    RC: { label: "RC", css: "active-RC" },
+    DATA: { label: "✎", css: "active-DATA" },
+  };
+  const CHECKPOINT_WEIGHTS = [40, 80, 80, 130];
+  const RATES = { R175: 1.75, R150: 1.5 };
+  const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+    const h = String(Math.floor(i / 2)).padStart(2, "0");
+    const m = i % 2 === 0 ? "00" : "30";
+    return `${h}:${m}`;
+  });
+
+  // ---------- persistence (localStorage instead of Claude's window.storage) ----------
+  function loadJSON(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) {
+      return fallback;
+    }
+  }
+  function saveJSON(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      console.error("فشل الحفظ", e);
+    }
+  }
+
+  // ---------- state ----------
+  let records = loadJSON("aziz-attendance-records", {});     // { date: "TC"|"RS"|"RC" }
+  let checkpoints = loadJSON("aziz-checkpoints", {});         // { date: [bool,bool,bool,bool] }
+  let notes = loadJSON("aziz-notes", {});                     // { date: string }
+  let workHours = loadJSON("aziz-work-hours", {});             // { date: {start,end} }
+  let overtimeRate = loadJSON("aziz-overtime-rate", {});        // { date: "R175"|"R150" }
+  let tab = "today";
+  let selectedDate = new Date().toISOString().slice(0, 10);
+  let knownDay = selectedDate;
+  let expandedYear = null;
+  let showDataModal = false;
+  let confirmClear = false;
+  let viewMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+  let savedFlashTimer = null;
+  let showFlash = false;
+
+  // ---------- helpers ----------
+  function formatArabicDate(isoDate) {
+    const d = new Date(isoDate + "T00:00:00");
+    return d.toLocaleDateString("ar-EG-u-nu-latn", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  }
+  function computeDayTotal(dayArr) {
+    return (dayArr || []).reduce((sum, active, i) => sum + (active ? CHECKPOINT_WEIGHTS[i] : 0), 0);
+  }
+  function formatDiff(start, end) {
+    if (!start || !end) return "—";
+    const [sh, sm] = start.split(":").map(Number);
+    const [eh, em] = end.split(":").map(Number);
+    let diffMin = eh * 60 + em - (sh * 60 + sm);
+    if (diffMin < 0) diffMin += 24 * 60;
+    const h = Math.floor(diffMin / 60);
+    const m = diffMin % 60;
+    return `${h}س ${m > 0 ? m + "د" : ""}`.trim();
+  }
+  function formatMinutes(mins) {
+    if (mins === null || mins === undefined) return "—";
+    const h = Math.floor(mins / 60);
+    const m = Math.round(mins % 60);
+    return `${h}س ${m > 0 ? m + "د" : ""}`.trim();
+  }
+  function decimalHours(start, end) {
+    if (!start || !end) return null;
+    const [sh, sm] = start.split(":").map(Number);
+    const [eh, em] = end.split(":").map(Number);
+    let diffMin = eh * 60 + em - (sh * 60 + sm);
+    if (diffMin < 0) diffMin += 24 * 60;
+    return diffMin / 60;
+  }
+  function workHourDates() {
+    return Object.keys(workHours)
+      .filter((d) => workHours[d] && workHours[d].start && workHours[d].end)
+      .sort((a, b) => (a < b ? 1 : -1));
+  }
+  function monthlyHoursDates() {
+    return workHourDates().filter((d) => d.startsWith(viewMonth));
+  }
+  function monthlyHoursTotal() {
+    return monthlyHoursDates()
+      .reduce((sum, d) => {
+        const hours = decimalHours(workHours[d].start, workHours[d].end) || 0;
+        const rateKey = overtimeRate[d];
+        const rateVal = rateKey ? RATES[rateKey] : 1;
+        return sum + hours * rateVal;
+      }, 0);
+  }
+  function sortedDates() {
+    return Object.keys(records).sort((a, b) => (a < b ? 1 : -1));
+  }
+  function groupedByYear() {
+    const groups = {};
+    sortedDates().forEach((d) => {
+      const y = d.slice(0, 4);
+      if (!groups[y]) groups[y] = [];
+      groups[y].push(d);
+    });
+    return groups;
+  }
+  function countedDays() {
+    return sortedDates().filter((d) => {
+      if (records[d] === "RC" || records[d] === "RS") return false;
+      if (records[d] === "DATA") return !!(notes[d] && notes[d].trim());
+      return true;
+    }).length;
+  }
+  function missingDays() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const todayDay = now.getDate();
+    let missing = 0;
+    for (let day = 1; day <= todayDay; day++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      if (!records[dateStr]) missing++;
+    }
+    return missing;
+  }
+  function monthlyCheckpointDates() {
+    return Object.keys(checkpoints)
+      .filter((d) => d.startsWith(viewMonth) && (checkpoints[d] || []).some(Boolean))
+      .sort();
+  }
+  function monthlyTotal() {
+    return monthlyCheckpointDates().reduce((sum, d) => sum + computeDayTotal(checkpoints[d]), 0);
+  }
+
+  // ---------- actions ----------
+  function setStatus(date, status) {
+    if (records[date] === status) delete records[date];
+    else records[date] = status;
+    saveJSON("aziz-attendance-records", records);
+    notes[date] = "";
+    saveJSON("aziz-notes", notes);
+    showFlash = true;
+    render();
+    clearTimeout(savedFlashTimer);
+    savedFlashTimer = setTimeout(() => { showFlash = false; render(); }, 900);
+  }
+  function toggleCheckpoint(date, index) {
+    const current = checkpoints[date] || [false, false, false, false];
+    const updated = current.map((v, i) => (i === index ? !v : v));
+    checkpoints[date] = updated;
+    saveJSON("aziz-checkpoints", checkpoints);
+    render();
+  }
+  function saveNote(date, text) {
+    notes[date] = text;
+    saveJSON("aziz-notes", notes);
+  }
+  function saveDataInput(date, text) {
+    saveNote(date, text);
+    if (text.trim()) {
+      records[date] = "DATA";
+    } else if (records[date] === "DATA") {
+      delete records[date];
+    }
+    saveJSON("aziz-attendance-records", records);
+  }
+  function setWorkHour(date, field, value) {
+    const current = workHours[date] || { start: "", end: "" };
+    workHours[date] = { ...current, [field]: value };
+    saveJSON("aziz-work-hours", workHours);
+    render();
+  }
+  function toggleOvertimeRate(date, rateKey) {
+    if (overtimeRate[date] === rateKey) delete overtimeRate[date];
+    else overtimeRate[date] = rateKey;
+    saveJSON("aziz-overtime-rate", overtimeRate);
+    render();
+  }
+
+  function clearAllData() {
+    if (!confirmClear) {
+      confirmClear = true;
+      render();
+      return;
+    }
+    records = {};
+    checkpoints = {};
+    notes = {};
+    workHours = {};
+    overtimeRate = {};
+    saveJSON("aziz-attendance-records", records);
+    saveJSON("aziz-checkpoints", checkpoints);
+    saveJSON("aziz-notes", notes);
+    saveJSON("aziz-work-hours", workHours);
+    saveJSON("aziz-overtime-rate", overtimeRate);
+    confirmClear = false;
+    showDataModal = false;
+    render();
+  }
+
+  // ---------- render ----------
+  function render() {
+    const app = document.getElementById("app");
+    app.innerHTML = `
+      <header>
+        <button class="data-btn" onclick="App.openModal()" title="عرض ملف تخزين البيانات">🗄️</button>
+        <div class="eyebrow">سجلّ الحضور</div>
+        <div class="avatar" style="margin-bottom:0;">${EMPLOYEE_NAME.charAt(0)}</div>
+        <div class="tabs">
+          <button class="tab-btn ${tab === "today" ? "active" : ""}" onclick="App.setTab('today')">تسجيل</button>
+          <button class="tab-btn ${tab === "history" ? "active" : ""}" onclick="App.setTab('history')">السجل</button>
+          <button class="tab-btn ${tab === "monthly" ? "active" : ""}" onclick="App.setTab('monthly')">الشهري</button>
+          <button class="tab-btn ${tab === "hours" ? "active" : ""}" onclick="App.setTab('hours')">الساعات</button>
+        </div>
+      </header>
+      <main>
+        ${tab === "today" ? renderToday() : ""}
+        ${tab === "history" ? renderHistory() : ""}
+        ${tab === "monthly" ? renderMonthly() : ""}
+        ${tab === "hours" ? renderHours() : ""}
+      </main>
+      ${renderModal()}
+    `;
+  }
+
+  function renderToday() {
+    const dc = checkpoints[selectedDate] || [false, false, false, false];
+    const total = computeDayTotal(dc);
+    const currentStatus = records[selectedDate];
+    return `
+      <div class="card center">
+        <label class="field-label">التاريخ</label>
+        <input type="date" value="${selectedDate}" onchange="App.setDate(this.value)" />
+        <div class="date-sub">${formatArabicDate(selectedDate)}</div>
+        <div class="status-row">
+          ${["TC", "RS", "RC"].map((key) => {
+            const s = STATUS[key];
+            const active = currentStatus === key ? s.css : "";
+            return `<button class="status-btn ${active}" onclick="App.setStatus('${key}')">${s.label}</button>`;
+          }).join("")}
+          <input type="text" value="${(notes[selectedDate] || "").replace(/"/g, "&quot;")}"
+            placeholder="إدخال معلومات..."
+            oninput="App.saveDataInput(this.value)"
+            onblur="App.refresh()"
+            class="status-btn active-DATA-input"
+            style="width:112px;height:64px;font-family:inherit;font-size:12px;font-weight:500;text-align:center;background:${currentStatus === "DATA" ? "#F1EAF8" : "#fff"};color:${currentStatus === "DATA" ? "#8A5FB0" : "#5B6470"};border-color:${currentStatus === "DATA" ? "#8A5FB0" : "#E4E6DF"};" />
+        </div>
+        <div class="saved-flash ${showFlash ? "show" : ""}">تم الحفظ ✓</div>
+        <div class="cp-section">
+          <div class="cp-title">نقاط التحقق</div>
+          <div class="cp-row">
+            ${dc.map((active, i) => `
+              <div class="cp-item">                <span class="cp-num">${i + 1}</span>
+                <button class="cp-btn ${active ? "active" : ""}" onclick="App.toggleCp(${i})">${active ? "✓" : ""}</button>
+              </div>
+            `).join("")}
+          </div>
+          <div class="cp-total">
+            <span>إجمالي التنشيط اليومي</span>
+            <span>${total}</span>
+          </div>
+        </div>
+        <div class="cp-section">
+          <div class="cp-title">ساعات العمل</div>
+          <div style="display:flex;align-items:flex-end;gap:8px;">
+            <div style="flex:1;">
+              <label class="field-label" style="text-align:right;">من</label>
+              <select onchange="App.setWorkHour('start', this.value)"
+                style="width:100%;border:1px solid #D7DAD3;border-radius:8px;padding:8px 6px;font-size:13px;font-family:inherit;outline:none;">
+                <option value="">—</option>
+                ${TIME_OPTIONS.map((t) => `<option value="${t}" ${(workHours[selectedDate] || {}).start === t ? "selected" : ""}>${t}</option>`).join("")}
+              </select>
+            </div>
+            <div style="flex:1;">
+              <label class="field-label" style="text-align:right;">إلى</label>
+              <select onchange="App.setWorkHour('end', this.value)"
+                style="width:100%;border:1px solid #D7DAD3;border-radius:8px;padding:8px 6px;font-size:13px;font-family:inherit;outline:none;">
+                <option value="">—</option>
+                ${TIME_OPTIONS.map((t) => `<option value="${t}" ${(workHours[selectedDate] || {}).end === t ? "selected" : ""}>${t}</option>`).join("")}
+              </select>
+            </div>
+            <div style="flex:1;">
+              <label class="field-label" style="text-align:right;">الفارق</label>
+              <div style="width:100%;border:1px solid #D7DAD3;border-radius:8px;padding:8px 6px;font-size:13px;text-align:center;font-weight:700;color:#0B4F4C;background:#F5F6F2;">
+                ${formatDiff((workHours[selectedDate] || {}).start, (workHours[selectedDate] || {}).end)}
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            ${Object.entries(RATES).map(([key, val]) => {
+              const active = overtimeRate[selectedDate] === key;
+              return `
+                <button onclick="App.toggleRate('${key}')"
+                  style="flex:1;padding:8px;border-radius:8px;border:2px solid ${active ? "#C1791F" : "#E4E6DF"};background:${active ? "#FBF0E1" : "#fff"};color:${active ? "#C1791F" : "#9AA1AB"};font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;">
+                  × ${val}
+                </button>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderHistory() {
+    const dates = sortedDates();
+    const groups = groupedByYear();
+    const years = Object.keys(groups).sort((a, b) => b - a);
+    let html = `<div class="card">`;
+    if (dates.length > 0) {
+      html += `
+        <div class="summary-box green">
+          <span>الأيام المحتسبة (بدون RC وRS)</span>
+          <span>${countedDays()}</span>
+        </div>
+        <div class="summary-box red">
+          <span>أيام بدون بيانات (هذا الشهر)</span>
+          <span>${missingDays()}</span>
+        </div>
+      `;
+    }
+    if (dates.length === 0) {
+      html += `
+        <div class="empty-state">
+          <div class="emoji">📋</div>
+          <p class="title">لا يوجد سجل حضور بعد</p>
+          <p class="sub">ابدأ بالتسجيل من تبويب «تسجيل».</p>
+        </div>
+      `;
+    } else {
+      years.forEach((year) => {
+        const isOpen = expandedYear === year || years.length === 1;
+        html += `<div style="margin-bottom:8px;">`;
+        if (years.length > 1) {
+          html += `<button class="year-btn" onclick="App.toggleYear('${year}')">${year}<span>${isOpen ? "▲" : "▼"}</span></button>`;
+        }
+        if (isOpen) {
+          groups[year].forEach((date) => {
+            const s = STATUS[records[date]];
+            if (!s) return;
+            html += `
+              <div class="ledger-row">
+                <div class="ledger-row-flex">
+                  <span style="font-size:14px;">${formatArabicDate(date)}</span>
+                  <span class="pill" style="background:${statusBg(records[date])};color:${statusColor(records[date])};max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom;">${records[date] === "DATA" ? (notes[date] || "بيانات") : s.label}</span>
+                </div>
+              </div>
+            `;
+          });
+        }
+        html += `</div>`;
+      });
+    }
+    html += `</div>`;
+    return html;
+  }
+
+  function renderMonthly() {
+    const dates = monthlyCheckpointDates();
+    const hDates = monthlyHoursDates();
+    const monthLabel = new Date(viewMonth + "-01T00:00:00").toLocaleDateString("ar-EG-u-nu-latn", { year: "numeric", month: "long" });
+    let html = `
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <button onclick="App.shiftMonth(1)" style="width:32px;height:32px;border-radius:999px;border:1px solid #D7DAD3;background:#fff;color:#5B6470;font-size:16px;cursor:pointer;">›</button>
+          <span style="font-size:14px;font-weight:700;">${monthLabel}</span>
+          <button onclick="App.shiftMonth(-1)" style="width:32px;height:32px;border-radius:999px;border:1px solid #D7DAD3;background:#fff;color:#5B6470;font-size:16px;cursor:pointer;">‹</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <div style="flex:1;background:#0B4F4C;border-radius:8px;padding:12px;text-align:center;">
+            <p style="font-size:11px;color:#B9D6D1;margin:0 0 4px;">إجمالي التنشيط</p>
+            <p style="font-family:'Cairo',sans-serif;font-weight:800;font-size:20px;color:#fff;margin:0;">${monthlyTotal()}</p>
+          </div>
+          <div style="flex:1;background:#0B4F4C;border-radius:8px;padding:12px;text-align:center;">
+            <p style="font-size:11px;color:#B9D6D1;margin:0 0 4px;">إجمالي الساعات</p>
+            <p style="font-family:'Cairo',sans-serif;font-weight:800;font-size:20px;color:#fff;margin:0;">${formatMinutes(monthlyHoursTotal() * 60)}</p>
+          </div>
+        </div>
+        <div style="font-size:12px;color:#8A93A0;margin-bottom:12px;">تفاصيل التنشيط اليومي</div>
+    `;
+    if (dates.length === 0) {
+      html += `
+        <div class="empty-state" style="padding:24px 0;">
+          <div class="emoji">🗓️</div>
+          <p class="title">لا يوجد تنشيط مسجّل لهذا الشهر</p>
+          <p class="sub">فعّل نقاط التحقق من تبويب «تسجيل».</p>
+        </div>
+      `;
+    } else {
+      dates.forEach((date) => {
+        const dc = checkpoints[date] || [];
+        const total = computeDayTotal(dc);
+        html += `
+          <div class="ledger-row">
+            <div class="ledger-row-flex" style="margin-bottom:6px;">
+              <span style="font-size:14px;">${formatArabicDate(date)}</span>
+              <span class="pill" style="background:#E7F1EC;color:#3C7A5D;">${total}</span>
+            </div>
+            <div class="cp-mini-row">
+              ${dc.map((active, i) => `<span class="cp-mini ${active ? "active" : ""}">${i + 1}</span>`).join("")}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    html += `<div style="font-size:12px;color:#8A93A0;margin:20px 0 12px;">تفاصيل ساعات العمل</div>`;
+    if (hDates.length === 0) {
+      html += `
+        <div class="empty-state" style="padding:24px 0;">
+          <p class="sub">لا توجد ساعات عمل مسجّلة لهذا الشهر.</p>
+        </div>
+      `;
+    } else {
+      html += `<table><thead><tr><th>التاريخ</th><th>الساعات</th><th>النسبة</th><th>الناتج</th></tr></thead><tbody>`;
+      hDates.forEach((date) => {
+        const rateKey = overtimeRate[date];
+        const rateVal = rateKey ? RATES[rateKey] : 1;
+        const hours = decimalHours(workHours[date].start, workHours[date].end);
+        const result = (hours * rateVal).toFixed(2);
+        html += `
+          <tr>
+            <td>${formatArabicDate(date)}</td>
+            <td style="font-weight:700;color:#0B4F4C;">${formatDiff(workHours[date].start, workHours[date].end)}</td>
+            <td>${rateKey ? "× " + rateVal : "—"}</td>
+            <td style="font-weight:700;color:#C1791F;">${result}</td>
+          </tr>
+        `;
+      });
+      html += `</tbody></table>`;
+    }
+    html += `</div>`;
+    return html;
+  }
+
+  function renderHours() {
+    const whDates = workHourDates();
+    let html = `
+      <div class="card">
+        <div class="monthly-header">
+          <span>مجموع ساعات الشهر</span>
+          <span>${formatMinutes(monthlyHoursTotal() * 60)}</span>
+        </div>
+        <div style="font-size:12px;color:#8A93A0;margin-bottom:12px;">جدول ساعات العمل</div>
+    `;
+    if (whDates.length === 0) {
+      html += `
+        <div class="empty-state" style="padding:24px 0;">
+          <p class="sub">لا توجد ساعات عمل مسجّلة بعد.</p>
+        </div>
+      `;
+    } else {
+      html += `<table><thead><tr><th>التاريخ</th><th>الساعات</th><th>النسبة</th><th>الناتج</th></tr></thead><tbody>`;
+      whDates.forEach((date) => {
+        const rateKey = overtimeRate[date];
+        const rateVal = rateKey ? RATES[rateKey] : 1;
+        const hours = decimalHours(workHours[date].start, workHours[date].end);
+        const result = (hours * rateVal).toFixed(2);
+        html += `
+          <tr>
+            <td>${formatArabicDate(date)}</td>
+            <td style="font-weight:700;color:#0B4F4C;">${formatDiff(workHours[date].start, workHours[date].end)}</td>
+            <td>${rateKey ? "× " + rateVal : "—"}</td>
+            <td style="font-weight:700;color:#C1791F;">${result}</td>
+          </tr>
+        `;
+      });
+      html += `</tbody></table>`;
+    }
+    html += `</div>`;
+    return html;
+  }
+
+  function renderModal() {
+    const dates = sortedDates();
+    let rows = "";
+    dates.forEach((date) => {
+      const s = STATUS[records[date]];
+      if (!s) return;
+      rows += `
+        <tr>
+          <td>${date}</td>
+          <td><span class="pill" style="background:${statusBg(records[date])};color:${statusColor(records[date])};max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom;">${records[date] === "DATA" ? (notes[date] || "بيانات") : s.label}</span></td>
+        </tr>
+      `;
+    });
+    return `
+      <div class="modal-overlay ${showDataModal ? "show" : ""}" onclick="App.closeModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+          <div class="modal-head">
+            <div class="modal-head-title"><span>🗄️</span><span>ملف تخزين البيانات</span></div>
+            <button class="modal-close" onclick="App.closeModal()">✕</button>
+          </div>
+          <div class="modal-body">
+            <p>عدد الأيام المحتسبة (بدون RC وRS): <b style="color:#3C7A5D;">${countedDays()}</b></p>
+            <p>أيام بدون بيانات (هذا الشهر حتى اليوم): <b style="color:#B5473F;">${missingDays()}</b></p>
+            ${dates.length === 0
+              ? `<p style="text-align:center;padding:24px 0;">لا توجد بيانات محفوظة بعد.</p>`
+              : `<table><thead><tr><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>${rows}</tbody></table>`
+            }
+          </div>
+          <div class="modal-foot">
+            <p style="margin-bottom:10px;">مفتاح التخزين: <code>aziz-attendance-records</code> / <code>aziz-checkpoints</code></p>
+            <button onclick="App.clearAllData()" style="width:100%;padding:8px;border-radius:8px;border:none;background:#FBEAE8;color:#B5473F;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">
+              ${confirmClear ? "اضغط للتأكيد — لا يمكن التراجع" : "مسح جميع البيانات المخزّنة"}
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function statusBg(key) {
+    return { TC: "#E7F1EC", RS: "#FBF0E1", RC: "#EAF0F8", DATA: "#F1EAF8" }[key] || "#F5F6F2";
+  }
+  function statusColor(key) {
+    return { TC: "#3C7A5D", RS: "#C1791F", RC: "#4A6FA5", DATA: "#8A5FB0" }[key] || "#8A93A0";
+  }
+
+  // ---------- public API used by inline onclick handlers ----------
+  window.App = {
+    setTab(t) { tab = t; render(); },
+    setDate(v) { selectedDate = v; render(); },
+    setStatus(key) { setStatus(selectedDate, key); },
+    toggleCp(i) { toggleCheckpoint(selectedDate, i); },
+    saveNote(text) { saveNote(selectedDate, text); },
+    saveDataInput(text) { saveDataInput(selectedDate, text); },
+    setWorkHour(field, value) { setWorkHour(selectedDate, field, value); },
+    toggleRate(rateKey) { toggleOvertimeRate(selectedDate, rateKey); render(); },
+    shiftMonth(delta) {
+      const [y, m] = viewMonth.split("-").map(Number);
+      const d = new Date(y, m - 1 + delta, 1);
+      viewMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      render();
+    },
+    refresh() { render(); },
+    toggleYear(y) { expandedYear = expandedYear === y ? null : y; render(); },
+    openModal() { showDataModal = true; render(); },
+    closeModal(e) { if (e && e.target !== e.currentTarget) return; showDataModal = false; confirmClear = false; render(); },
+    clearAllData() { clearAllData(); },
+  };
+
+  render();
+
+  setInterval(() => {
+    const nowDay = new Date().toISOString().slice(0, 10);
+    if (nowDay !== knownDay) {
+      if (selectedDate === knownDay) {
+        selectedDate = nowDay;
+        render();
+      }
+      knownDay = nowDay;
+    }
+  }, 30000); // check every 30 seconds
+})();
+</script>
+</body>
+</html>
