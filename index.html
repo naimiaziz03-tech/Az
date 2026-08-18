@@ -225,6 +225,7 @@
   let expandedYear = null;
   let showDataModal = false;
   let confirmClear = false;
+  let viewMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
   let savedFlashTimer = null;
   let showFlash = false;
 
@@ -265,10 +266,11 @@
       .filter((d) => workHours[d] && workHours[d].start && workHours[d].end)
       .sort((a, b) => (a < b ? 1 : -1));
   }
+  function monthlyHoursDates() {
+    return workHourDates().filter((d) => d.startsWith(viewMonth));
+  }
   function monthlyHoursTotal() {
-    const key = selectedDate.slice(0, 7);
-    return workHourDates()
-      .filter((d) => d.startsWith(key))
+    return monthlyHoursDates()
       .reduce((sum, d) => {
         const hours = decimalHours(workHours[d].start, workHours[d].end) || 0;
         const rateKey = overtimeRate[d];
@@ -308,9 +310,8 @@
     return missing;
   }
   function monthlyCheckpointDates() {
-    const key = selectedDate.slice(0, 7);
     return Object.keys(checkpoints)
-      .filter((d) => d.startsWith(key) && (checkpoints[d] || []).some(Boolean))
+      .filter((d) => d.startsWith(viewMonth) && (checkpoints[d] || []).some(Boolean))
       .sort();
   }
   function monthlyTotal() {
@@ -542,19 +543,32 @@
 
   function renderMonthly() {
     const dates = monthlyCheckpointDates();
+    const hDates = monthlyHoursDates();
+    const monthLabel = new Date(viewMonth + "-01T00:00:00").toLocaleDateString("ar-EG-u-nu-latn", { year: "numeric", month: "long" });
     let html = `
       <div class="card">
-        <div class="monthly-header">
-          <span>إجمالي التنشيط الشهري</span>
-          <span>${monthlyTotal()}</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <button onclick="App.shiftMonth(1)" style="width:32px;height:32px;border-radius:999px;border:1px solid #D7DAD3;background:#fff;color:#5B6470;font-size:16px;cursor:pointer;">›</button>
+          <span style="font-size:14px;font-weight:700;">${monthLabel}</span>
+          <button onclick="App.shiftMonth(-1)" style="width:32px;height:32px;border-radius:999px;border:1px solid #D7DAD3;background:#fff;color:#5B6470;font-size:16px;cursor:pointer;">‹</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <div style="flex:1;background:#0B4F4C;border-radius:8px;padding:12px;text-align:center;">
+            <p style="font-size:11px;color:#B9D6D1;margin:0 0 4px;">إجمالي التنشيط</p>
+            <p style="font-family:'Cairo',sans-serif;font-weight:800;font-size:20px;color:#fff;margin:0;">${monthlyTotal()}</p>
+          </div>
+          <div style="flex:1;background:#0B4F4C;border-radius:8px;padding:12px;text-align:center;">
+            <p style="font-size:11px;color:#B9D6D1;margin:0 0 4px;">إجمالي الساعات</p>
+            <p style="font-family:'Cairo',sans-serif;font-weight:800;font-size:20px;color:#fff;margin:0;">${formatMinutes(monthlyHoursTotal() * 60)}</p>
+          </div>
         </div>
         <div style="font-size:12px;color:#8A93A0;margin-bottom:12px;">تفاصيل التنشيط اليومي</div>
     `;
     if (dates.length === 0) {
       html += `
-        <div class="empty-state">
+        <div class="empty-state" style="padding:24px 0;">
           <div class="emoji">🗓️</div>
-          <p class="title">لا يوجد تنشيط مسجّل هذا الشهر</p>
+          <p class="title">لا يوجد تنشيط مسجّل لهذا الشهر</p>
           <p class="sub">فعّل نقاط التحقق من تبويب «تسجيل».</p>
         </div>
       `;
@@ -574,6 +588,32 @@
           </div>
         `;
       });
+    }
+
+    html += `<div style="font-size:12px;color:#8A93A0;margin:20px 0 12px;">تفاصيل ساعات العمل</div>`;
+    if (hDates.length === 0) {
+      html += `
+        <div class="empty-state" style="padding:24px 0;">
+          <p class="sub">لا توجد ساعات عمل مسجّلة لهذا الشهر.</p>
+        </div>
+      `;
+    } else {
+      html += `<table><thead><tr><th>التاريخ</th><th>الساعات</th><th>النسبة</th><th>الناتج</th></tr></thead><tbody>`;
+      hDates.forEach((date) => {
+        const rateKey = overtimeRate[date];
+        const rateVal = rateKey ? RATES[rateKey] : 1;
+        const hours = decimalHours(workHours[date].start, workHours[date].end);
+        const result = (hours * rateVal).toFixed(2);
+        html += `
+          <tr>
+            <td>${formatArabicDate(date)}</td>
+            <td style="font-weight:700;color:#0B4F4C;">${formatDiff(workHours[date].start, workHours[date].end)}</td>
+            <td>${rateKey ? "× " + rateVal : "—"}</td>
+            <td style="font-weight:700;color:#C1791F;">${result}</td>
+          </tr>
+        `;
+      });
+      html += `</tbody></table>`;
     }
     html += `</div>`;
     return html;
@@ -673,6 +713,12 @@
     saveDataInput(text) { saveDataInput(selectedDate, text); },
     setWorkHour(field, value) { setWorkHour(selectedDate, field, value); },
     toggleRate(rateKey) { toggleOvertimeRate(selectedDate, rateKey); render(); },
+    shiftMonth(delta) {
+      const [y, m] = viewMonth.split("-").map(Number);
+      const d = new Date(y, m - 1 + delta, 1);
+      viewMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      render();
+    },
     refresh() { render(); },
     toggleYear(y) { expandedYear = expandedYear === y ? null : y; render(); },
     openModal() { showDataModal = true; render(); },
