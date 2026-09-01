@@ -222,7 +222,8 @@
   let tab = "today";
   let selectedDate = new Date().toISOString().slice(0, 10);
   let knownDay = selectedDate;
-  let expandedYear = null;
+  let expandedMonth = null;
+  let expandedHoursMonth = null;
   let showDataModal = false;
   let confirmClear = false;
   let viewMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
@@ -266,6 +267,21 @@
       .filter((d) => workHours[d] && workHours[d].start && workHours[d].end)
       .sort((a, b) => (a < b ? 1 : -1));
   }
+  function dayResult(d) {
+    const hours = decimalHours(workHours[d].start, workHours[d].end) || 0;
+    const rateKey = overtimeRate[d];
+    const rateVal = rateKey ? RATES[rateKey] : 1;
+    return hours * rateVal;
+  }
+  function groupedHoursByMonth() {
+    const groups = {};
+    workHourDates().forEach((d) => {
+      const m = d.slice(0, 7);
+      if (!groups[m]) groups[m] = [];
+      groups[m].push(d);
+    });
+    return groups;
+  }
   function monthlyHoursDates() {
     return workHourDates().filter((d) => d.startsWith(viewMonth));
   }
@@ -281,21 +297,23 @@
   function sortedDates() {
     return Object.keys(records).sort((a, b) => (a < b ? 1 : -1));
   }
-  function groupedByYear() {
+  function isCountedDate(d) {
+    if (records[d] === "RC" || records[d] === "RS") return false;
+    if (records[d] === "DATA") return !!(notes[d] && notes[d].trim());
+    return true;
+  }
+  function groupedByMonth() {
     const groups = {};
     sortedDates().forEach((d) => {
-      const y = d.slice(0, 4);
-      if (!groups[y]) groups[y] = [];
-      groups[y].push(d);
+      const m = d.slice(0, 7);
+      if (!groups[m]) groups[m] = [];
+      groups[m].push(d);
     });
     return groups;
   }
   function countedDays() {
-    return sortedDates().filter((d) => {
-      if (records[d] === "RC" || records[d] === "RS") return false;
-      if (records[d] === "DATA") return !!(notes[d] && notes[d].trim());
-      return true;
-    }).length;
+    const monthKey = new Date().toISOString().slice(0, 7);
+    return sortedDates().filter((d) => d.startsWith(monthKey) && isCountedDate(d)).length;
   }
   function missingDays() {
     const now = new Date();
@@ -413,11 +431,24 @@
     const dc = checkpoints[selectedDate] || [false, false, false, false];
     const total = computeDayTotal(dc);
     const currentStatus = records[selectedDate];
+    const monthKey = selectedDate.slice(0, 7);
+    const monthCounted = sortedDates().filter((d) => d.startsWith(monthKey) && isCountedDate(d)).length;
+    const monthHours = workHourDates().filter((d) => d.startsWith(monthKey)).reduce((sum, d) => sum + dayResult(d), 0);
     return `
       <div class="card center">
         <label class="field-label">التاريخ</label>
         <input type="date" value="${selectedDate}" onchange="App.setDate(this.value)" />
-        <div class="date-sub">${formatArabicDate(selectedDate)}</div>
+        <div class="date-sub" style="margin-bottom:12px;">${formatArabicDate(selectedDate)}</div>
+        <div style="display:flex;gap:8px;margin-bottom:20px;">
+          <div style="flex:1;background:#F5F6F2;border-radius:8px;padding:8px;text-align:center;">
+            <p style="font-size:10px;color:#8A93A0;margin:0 0 2px;">أيام هذا الشهر</p>
+            <p style="font-family:'Cairo',sans-serif;font-weight:800;font-size:14px;color:#3C7A5D;margin:0;">${monthCounted}</p>
+          </div>
+          <div style="flex:1;background:#F5F6F2;border-radius:8px;padding:8px;text-align:center;">
+            <p style="font-size:10px;color:#8A93A0;margin:0 0 2px;">ساعات هذا الشهر</p>
+            <p style="font-family:'Cairo',sans-serif;font-weight:800;font-size:14px;color:#0B4F4C;margin:0;">${formatMinutes(monthHours * 60)}</p>
+          </div>
+        </div>
         <div class="status-row">
           ${["TC", "RS", "RC"].map((key) => {
             const s = STATUS[key];
@@ -490,13 +521,13 @@
 
   function renderHistory() {
     const dates = sortedDates();
-    const groups = groupedByYear();
-    const years = Object.keys(groups).sort((a, b) => b - a);
+    const groups = groupedByMonth();
+    const months = Object.keys(groups).sort((a, b) => (a < b ? 1 : -1));
     let html = `<div class="card">`;
     if (dates.length > 0) {
       html += `
         <div class="summary-box green">
-          <span>الأيام المحتسبة (بدون RC وRS)</span>
+          <span>الأيام المحتسبة هذا الشهر</span>
           <span>${countedDays()}</span>
         </div>
         <div class="summary-box red">
@@ -514,14 +545,15 @@
         </div>
       `;
     } else {
-      years.forEach((year) => {
-        const isOpen = expandedYear === year || years.length === 1;
+      months.forEach((month) => {
+        const isOpen = expandedMonth === month || months.length === 1;
+        const monthDates = groups[month];
+        const monthCounted = monthDates.filter(isCountedDate).length;
+        const monthLabel = new Date(month + "-01T00:00:00").toLocaleDateString("ar-EG-u-nu-latn", { year: "numeric", month: "long" });
         html += `<div style="margin-bottom:8px;">`;
-        if (years.length > 1) {
-          html += `<button class="year-btn" onclick="App.toggleYear('${year}')">${year}<span>${isOpen ? "▲" : "▼"}</span></button>`;
-        }
+        html += `<button class="year-btn" onclick="App.toggleMonth('${month}')"><span style="display:flex;align-items:center;gap:8px;">${monthLabel}<span class="pill" style="background:#E7F1EC;color:#3C7A5D;">${monthCounted}</span></span><span>${isOpen ? "▲" : "▼"}</span></button>`;
         if (isOpen) {
-          groups[year].forEach((date) => {
+          monthDates.forEach((date) => {
             const s = STATUS[records[date]];
             if (!s) return;
             html += `
@@ -624,7 +656,7 @@
     let html = `
       <div class="card">
         <div class="monthly-header">
-          <span>مجموع ساعات الشهر</span>
+          <span>مجموع ساعات الشهر الحالي</span>
           <span>${formatMinutes(monthlyHoursTotal() * 60)}</span>
         </div>
         <div style="font-size:12px;color:#8A93A0;margin-bottom:12px;">جدول ساعات العمل</div>
@@ -636,22 +668,34 @@
         </div>
       `;
     } else {
-      html += `<table><thead><tr><th>التاريخ</th><th>الساعات</th><th>النسبة</th><th>الناتج</th></tr></thead><tbody>`;
-      whDates.forEach((date) => {
-        const rateKey = overtimeRate[date];
-        const rateVal = rateKey ? RATES[rateKey] : 1;
-        const hours = decimalHours(workHours[date].start, workHours[date].end);
-        const result = (hours * rateVal).toFixed(2);
-        html += `
-          <tr>
-            <td>${formatArabicDate(date)}</td>
-            <td style="font-weight:700;color:#0B4F4C;">${formatDiff(workHours[date].start, workHours[date].end)}</td>
-            <td>${rateKey ? "× " + rateVal : "—"}</td>
-            <td style="font-weight:700;color:#C1791F;">${result}</td>
-          </tr>
-        `;
+      const groups = groupedHoursByMonth();
+      const months = Object.keys(groups).sort((a, b) => (a < b ? 1 : -1));
+      months.forEach((month) => {
+        const isOpen = expandedHoursMonth === month || months.length === 1;
+        const monthDates = groups[month];
+        const monthTotal = monthDates.reduce((sum, d) => sum + dayResult(d), 0);
+        const monthLabel = new Date(month + "-01T00:00:00").toLocaleDateString("ar-EG-u-nu-latn", { year: "numeric", month: "long" });
+        html += `<div style="margin-bottom:12px;">`;
+        html += `<button class="year-btn" onclick="App.toggleHoursMonth('${month}')"><span style="display:flex;align-items:center;gap:8px;">${monthLabel}<span class="pill" style="background:#E7F1EC;color:#3C7A5D;">${formatMinutes(monthTotal * 60)}</span></span><span>${isOpen ? "▲" : "▼"}</span></button>`;
+        if (isOpen) {
+          html += `<table><thead><tr><th>التاريخ</th><th>الساعات</th><th>النسبة</th><th>الناتج</th></tr></thead><tbody>`;
+          monthDates.forEach((date) => {
+            const rateKey = overtimeRate[date];
+            const rateVal = rateKey ? RATES[rateKey] : 1;
+            const result = dayResult(date).toFixed(2);
+            html += `
+              <tr>
+                <td>${formatArabicDate(date)}</td>
+                <td style="font-weight:700;color:#0B4F4C;">${formatDiff(workHours[date].start, workHours[date].end)}</td>
+                <td>${rateKey ? "× " + rateVal : "—"}</td>
+                <td style="font-weight:700;color:#C1791F;">${result}</td>
+              </tr>
+            `;
+          });
+          html += `</tbody></table>`;
+        }
+        html += `</div>`;
       });
-      html += `</tbody></table>`;
     }
     html += `</div>`;
     return html;
@@ -678,7 +722,7 @@
             <button class="modal-close" onclick="App.closeModal()">✕</button>
           </div>
           <div class="modal-body">
-            <p>عدد الأيام المحتسبة (بدون RC وRS): <b style="color:#3C7A5D;">${countedDays()}</b></p>
+            <p>عدد الأيام المحتسبة هذا الشهر: <b style="color:#3C7A5D;">${countedDays()}</b></p>
             <p>أيام بدون بيانات (هذا الشهر حتى اليوم): <b style="color:#B5473F;">${missingDays()}</b></p>
             ${dates.length === 0
               ? `<p style="text-align:center;padding:24px 0;">لا توجد بيانات محفوظة بعد.</p>`
@@ -720,7 +764,8 @@
       render();
     },
     refresh() { render(); },
-    toggleYear(y) { expandedYear = expandedYear === y ? null : y; render(); },
+    toggleMonth(m) { expandedMonth = expandedMonth === m ? null : m; render(); },
+    toggleHoursMonth(m) { expandedHoursMonth = expandedHoursMonth === m ? null : m; render(); },
     openModal() { showDataModal = true; render(); },
     closeModal(e) { if (e && e.target !== e.currentTarget) return; showDataModal = false; confirmClear = false; render(); },
     clearAllData() { clearAllData(); },
