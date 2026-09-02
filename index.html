@@ -250,9 +250,11 @@
   }
   function formatMinutes(mins) {
     if (mins === null || mins === undefined) return "—";
-    const h = Math.floor(mins / 60);
-    const m = Math.round(mins % 60);
-    return `${h}س ${m > 0 ? m + "د" : ""}`.trim();
+    const sign = mins < 0 ? "-" : "";
+    const abs = Math.abs(mins);
+    const h = Math.floor(abs / 60);
+    const m = Math.round(abs % 60);
+    return `${sign}${h}س ${m > 0 ? m + "د" : ""}`.trim();
   }
   function decimalHours(start, end) {
     if (!start || !end) return null;
@@ -268,14 +270,22 @@
       .sort((a, b) => (a < b ? 1 : -1));
   }
   function dayResult(d) {
-    const hours = decimalHours(workHours[d].start, workHours[d].end) || 0;
+    const wh = workHours[d];
+    const hours = wh ? (decimalHours(wh.start, wh.end) || 0) : 0;
     const rateKey = overtimeRate[d];
     const rateVal = rateKey ? RATES[rateKey] : 1;
-    return hours * rateVal;
+    const base = hours * rateVal;
+    const deduction = records[d] === "RC" ? 8.5 : 0;
+    return base - deduction;
+  }
+  function combinedHoursDates() {
+    const rcDates = Object.keys(records).filter((d) => records[d] === "RC");
+    const set = new Set([...workHourDates(), ...rcDates]);
+    return Array.from(set).sort((a, b) => (a < b ? 1 : -1));
   }
   function groupedHoursByMonth() {
     const groups = {};
-    workHourDates().forEach((d) => {
+    combinedHoursDates().forEach((d) => {
       const m = d.slice(0, 7);
       if (!groups[m]) groups[m] = [];
       groups[m].push(d);
@@ -283,16 +293,10 @@
     return groups;
   }
   function monthlyHoursDates() {
-    return workHourDates().filter((d) => d.startsWith(viewMonth));
+    return combinedHoursDates().filter((d) => d.startsWith(viewMonth));
   }
   function monthlyHoursTotal() {
-    return monthlyHoursDates()
-      .reduce((sum, d) => {
-        const hours = decimalHours(workHours[d].start, workHours[d].end) || 0;
-        const rateKey = overtimeRate[d];
-        const rateVal = rateKey ? RATES[rateKey] : 1;
-        return sum + hours * rateVal;
-      }, 0);
+    return monthlyHoursDates().reduce((sum, d) => sum + dayResult(d), 0);
   }
   function sortedDates() {
     return Object.keys(records).sort((a, b) => (a < b ? 1 : -1));
@@ -433,7 +437,7 @@
     const currentStatus = records[selectedDate];
     const monthKey = selectedDate.slice(0, 7);
     const monthCounted = sortedDates().filter((d) => d.startsWith(monthKey) && isCountedDate(d)).length;
-    const monthHours = workHourDates().filter((d) => d.startsWith(monthKey)).reduce((sum, d) => sum + dayResult(d), 0);
+    const monthHours = combinedHoursDates().filter((d) => d.startsWith(monthKey)).reduce((sum, d) => sum + dayResult(d), 0);
     return `
       <div class="card center">
         <label class="field-label">التاريخ</label>
@@ -446,7 +450,7 @@
           </div>
           <div style="flex:1;background:#F5F6F2;border-radius:8px;padding:8px;text-align:center;">
             <p style="font-size:10px;color:#8A93A0;margin:0 0 2px;">ساعات هذا الشهر</p>
-            <p style="font-family:'Cairo',sans-serif;font-weight:800;font-size:14px;color:#0B4F4C;margin:0;">${formatMinutes(monthHours * 60)}</p>
+            <p style="font-family:'Cairo',sans-serif;font-weight:800;font-size:14px;color:${monthHours < 0 ? "#B5473F" : "#0B4F4C"};margin:0;">${formatMinutes(monthHours * 60)}</p>
           </div>
         </div>
         <div class="status-row">
@@ -591,7 +595,7 @@
           </div>
           <div style="flex:1;background:#0B4F4C;border-radius:8px;padding:12px;text-align:center;">
             <p style="font-size:11px;color:#B9D6D1;margin:0 0 4px;">إجمالي الساعات</p>
-            <p style="font-family:'Cairo',sans-serif;font-weight:800;font-size:20px;color:#fff;margin:0;">${formatMinutes(monthlyHoursTotal() * 60)}</p>
+            <p style="font-family:'Cairo',sans-serif;font-weight:800;font-size:20px;color:${monthlyHoursTotal() < 0 ? "#FF9B8C" : "#fff"};margin:0;">${formatMinutes(monthlyHoursTotal() * 60)}</p>
           </div>
         </div>
         <div style="font-size:12px;color:#8A93A0;margin-bottom:12px;">تفاصيل التنشيط اليومي</div>
@@ -634,14 +638,15 @@
       hDates.forEach((date) => {
         const rateKey = overtimeRate[date];
         const rateVal = rateKey ? RATES[rateKey] : 1;
-        const hours = decimalHours(workHours[date].start, workHours[date].end);
-        const result = (hours * rateVal).toFixed(2);
+        const result = dayResult(date).toFixed(2);
+        const hasHours = workHours[date] && workHours[date].start && workHours[date].end;
+        const isRC = records[date] === "RC";
         html += `
           <tr>
-            <td>${formatArabicDate(date)}</td>
-            <td style="font-weight:700;color:#0B4F4C;">${formatDiff(workHours[date].start, workHours[date].end)}</td>
+            <td>${formatArabicDate(date)}${isRC ? ` <span style="font-size:10px;color:#B5473F;">(RC)</span>` : ""}</td>
+            <td style="font-weight:700;color:#0B4F4C;">${hasHours ? formatDiff(workHours[date].start, workHours[date].end) : "—"}</td>
             <td>${rateKey ? "× " + rateVal : "—"}</td>
-            <td style="font-weight:700;color:#C1791F;">${result}</td>
+            <td style="font-weight:700;color:${dayResult(date) < 0 ? "#B5473F" : "#C1791F"};">${result}</td>
           </tr>
         `;
       });
@@ -652,12 +657,12 @@
   }
 
   function renderHours() {
-    const whDates = workHourDates();
+    const whDates = combinedHoursDates();
     let html = `
       <div class="card">
         <div class="monthly-header">
           <span>مجموع ساعات الشهر الحالي</span>
-          <span>${formatMinutes(monthlyHoursTotal() * 60)}</span>
+          <span style="color:${monthlyHoursTotal() < 0 ? "#FF9B8C" : "#fff"};">${formatMinutes(monthlyHoursTotal() * 60)}</span>
         </div>
         <div style="font-size:12px;color:#8A93A0;margin-bottom:12px;">جدول ساعات العمل</div>
     `;
@@ -676,19 +681,21 @@
         const monthTotal = monthDates.reduce((sum, d) => sum + dayResult(d), 0);
         const monthLabel = new Date(month + "-01T00:00:00").toLocaleDateString("ar-EG-u-nu-latn", { year: "numeric", month: "long" });
         html += `<div style="margin-bottom:12px;">`;
-        html += `<button class="year-btn" onclick="App.toggleHoursMonth('${month}')"><span style="display:flex;align-items:center;gap:8px;">${monthLabel}<span class="pill" style="background:#E7F1EC;color:#3C7A5D;">${formatMinutes(monthTotal * 60)}</span></span><span>${isOpen ? "▲" : "▼"}</span></button>`;
+        html += `<button class="year-btn" onclick="App.toggleHoursMonth('${month}')"><span style="display:flex;align-items:center;gap:8px;">${monthLabel}<span class="pill" style="background:${monthTotal < 0 ? "#FBEAE8" : "#E7F1EC"};color:${monthTotal < 0 ? "#B5473F" : "#3C7A5D"};">${formatMinutes(monthTotal * 60)}</span></span><span>${isOpen ? "▲" : "▼"}</span></button>`;
         if (isOpen) {
           html += `<table><thead><tr><th>التاريخ</th><th>الساعات</th><th>النسبة</th><th>الناتج</th></tr></thead><tbody>`;
           monthDates.forEach((date) => {
             const rateKey = overtimeRate[date];
             const rateVal = rateKey ? RATES[rateKey] : 1;
             const result = dayResult(date).toFixed(2);
+            const hasHours = workHours[date] && workHours[date].start && workHours[date].end;
+            const isRC = records[date] === "RC";
             html += `
               <tr>
-                <td>${formatArabicDate(date)}</td>
-                <td style="font-weight:700;color:#0B4F4C;">${formatDiff(workHours[date].start, workHours[date].end)}</td>
+                <td>${formatArabicDate(date)}${isRC ? ` <span style="font-size:10px;color:#B5473F;">(RC)</span>` : ""}</td>
+                <td style="font-weight:700;color:#0B4F4C;">${hasHours ? formatDiff(workHours[date].start, workHours[date].end) : "—"}</td>
                 <td>${rateKey ? "× " + rateVal : "—"}</td>
-                <td style="font-weight:700;color:#C1791F;">${result}</td>
+                <td style="font-weight:700;color:${dayResult(date) < 0 ? "#B5473F" : "#C1791F"};">${result}</td>
               </tr>
             `;
           });
