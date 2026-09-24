@@ -224,6 +224,7 @@
   let knownDay = selectedDate;
   let expandedMonth = null;
   let expandedHoursMonth = null;
+  let expandedDate = null;
   let showDataModal = false;
   let confirmClear = false;
   let viewMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
@@ -560,11 +561,15 @@
           monthDates.forEach((date) => {
             const s = STATUS[records[date]];
             if (!s) return;
+            const isDateOpen = expandedDate === date;
+            const pillStyle = isDateOpen
+              ? `background:${statusBg(records[date])};color:${statusColor(records[date])};white-space:normal;word-break:break-word;display:inline-block;width:100%;text-align:right;`
+              : `background:${statusBg(records[date])};color:${statusColor(records[date])};max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom;`;
             html += `
-              <div class="ledger-row">
-                <div class="ledger-row-flex">
+              <div class="ledger-row" style="cursor:pointer;" onclick="App.toggleDate('${date}')">
+                <div class="ledger-row-flex" style="${isDateOpen ? "flex-wrap:wrap;gap:6px;" : ""}">
                   <span style="font-size:14px;">${formatArabicDate(date)}</span>
-                  <span class="pill" style="background:${statusBg(records[date])};color:${statusColor(records[date])};max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom;">${records[date] === "DATA" ? (notes[date] || "بيانات") : s.label}</span>
+                  <span class="pill" style="${pillStyle}">${records[date] === "DATA" ? (notes[date] || "بيانات") : s.label}</span>
                 </div>
               </div>
             `;
@@ -612,15 +617,18 @@
       dates.forEach((date) => {
         const dc = checkpoints[date] || [];
         const total = computeDayTotal(dc);
+        const wh = workHours[date];
+        const hasTime = wh && wh.start && wh.end;
         html += `
           <div class="ledger-row">
             <div class="ledger-row-flex" style="margin-bottom:6px;">
               <span style="font-size:14px;">${formatArabicDate(date)}</span>
               <span class="pill" style="background:#E7F1EC;color:#3C7A5D;">${total}</span>
             </div>
-            <div class="cp-mini-row">
+            <div class="cp-mini-row" style="margin-bottom:6px;">
               ${dc.map((active, i) => `<span class="cp-mini ${active ? "active" : ""}">${i + 1}</span>`).join("")}
             </div>
+            ${hasTime ? `<p style="font-size:12px;color:#5B6470;margin:0;">⏱ من ${wh.start} إلى ${wh.end}</p>` : ""}
           </div>
         `;
       });
@@ -772,6 +780,7 @@
     },
     refresh() { render(); },
     toggleMonth(m) { expandedMonth = expandedMonth === m ? null : m; render(); },
+    toggleDate(d) { expandedDate = expandedDate === d ? null : d; render(); },
     toggleHoursMonth(m) { expandedHoursMonth = expandedHoursMonth === m ? null : m; render(); },
     openModal() { showDataModal = true; render(); },
     closeModal(e) { if (e && e.target !== e.currentTarget) return; showDataModal = false; confirmClear = false; render(); },
