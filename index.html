@@ -419,14 +419,12 @@
           <button class="tab-btn ${tab === "today" ? "active" : ""}" onclick="App.setTab('today')">تسجيل</button>
           <button class="tab-btn ${tab === "history" ? "active" : ""}" onclick="App.setTab('history')">السجل</button>
           <button class="tab-btn ${tab === "monthly" ? "active" : ""}" onclick="App.setTab('monthly')">الشهري</button>
-          <button class="tab-btn ${tab === "hours" ? "active" : ""}" onclick="App.setTab('hours')">الساعات</button>
         </div>
       </header>
       <main>
         ${tab === "today" ? renderToday() : ""}
         ${tab === "history" ? renderHistory() : ""}
         ${tab === "monthly" ? renderMonthly() : ""}
-        ${tab === "hours" ? renderHours() : ""}
       </main>
       ${renderModal()}
     `;
@@ -642,7 +640,7 @@
         </div>
       `;
     } else {
-      html += `<table><thead><tr><th>التاريخ</th><th>الساعات</th><th>النسبة</th><th>الناتج</th></tr></thead><tbody>`;
+      html += `<table><thead><tr><th>التاريخ</th><th>الوقت</th><th>النسبة</th><th>الناتج</th></tr></thead><tbody>`;
       hDates.forEach((date) => {
         const rateKey = overtimeRate[date];
         const rateVal = rateKey ? RATES[rateKey] : 1;
@@ -652,65 +650,13 @@
         html += `
           <tr>
             <td>${formatArabicDate(date)}${isRC ? ` <span style="font-size:10px;color:#B5473F;">(RC)</span>` : ""}</td>
-            <td style="font-weight:700;color:#0B4F4C;">${hasHours ? formatDiff(workHours[date].start, workHours[date].end) : "—"}</td>
+            <td>${hasHours ? `<div style="font-weight:700;color:#0B4F4C;">${workHours[date].start} → ${workHours[date].end}</div><div style="font-size:10px;color:#8A93A0;">${formatDiff(workHours[date].start, workHours[date].end)}</div>` : "—"}</td>
             <td>${rateKey ? "× " + rateVal : "—"}</td>
             <td style="font-weight:700;color:${dayResult(date) < 0 ? "#B5473F" : "#C1791F"};">${result}</td>
           </tr>
         `;
       });
       html += `</tbody></table>`;
-    }
-    html += `</div>`;
-    return html;
-  }
-
-  function renderHours() {
-    const whDates = combinedHoursDates();
-    let html = `
-      <div class="card">
-        <div class="monthly-header">
-          <span>مجموع ساعات الشهر الحالي</span>
-          <span style="color:${monthlyHoursTotal() < 0 ? "#FF9B8C" : "#fff"};">${formatMinutes(monthlyHoursTotal() * 60)}</span>
-        </div>
-        <div style="font-size:12px;color:#8A93A0;margin-bottom:12px;">جدول ساعات العمل</div>
-    `;
-    if (whDates.length === 0) {
-      html += `
-        <div class="empty-state" style="padding:24px 0;">
-          <p class="sub">لا توجد ساعات عمل مسجّلة بعد.</p>
-        </div>
-      `;
-    } else {
-      const groups = groupedHoursByMonth();
-      const months = Object.keys(groups).sort((a, b) => (a < b ? 1 : -1));
-      months.forEach((month) => {
-        const isOpen = expandedHoursMonth === month || months.length === 1;
-        const monthDates = groups[month];
-        const monthTotal = monthDates.reduce((sum, d) => sum + dayResult(d), 0);
-        const monthLabel = new Date(month + "-01T00:00:00").toLocaleDateString("ar-EG-u-nu-latn", { year: "numeric", month: "long" });
-        html += `<div style="margin-bottom:12px;">`;
-        html += `<button class="year-btn" onclick="App.toggleHoursMonth('${month}')"><span style="display:flex;align-items:center;gap:8px;">${monthLabel}<span class="pill" style="background:${monthTotal < 0 ? "#FBEAE8" : "#E7F1EC"};color:${monthTotal < 0 ? "#B5473F" : "#3C7A5D"};">${formatMinutes(monthTotal * 60)}</span></span><span>${isOpen ? "▲" : "▼"}</span></button>`;
-        if (isOpen) {
-          html += `<table><thead><tr><th>التاريخ</th><th>الساعات</th><th>النسبة</th><th>الناتج</th></tr></thead><tbody>`;
-          monthDates.forEach((date) => {
-            const rateKey = overtimeRate[date];
-            const rateVal = rateKey ? RATES[rateKey] : 1;
-            const result = dayResult(date).toFixed(2);
-            const hasHours = workHours[date] && workHours[date].start && workHours[date].end;
-            const isRC = records[date] === "RC";
-            html += `
-              <tr>
-                <td>${formatArabicDate(date)}${isRC ? ` <span style="font-size:10px;color:#B5473F;">(RC)</span>` : ""}</td>
-                <td style="font-weight:700;color:#0B4F4C;">${hasHours ? formatDiff(workHours[date].start, workHours[date].end) : "—"}</td>
-                <td>${rateKey ? "× " + rateVal : "—"}</td>
-                <td style="font-weight:700;color:${dayResult(date) < 0 ? "#B5473F" : "#C1791F"};">${result}</td>
-              </tr>
-            `;
-          });
-          html += `</tbody></table>`;
-        }
-        html += `</div>`;
-      });
     }
     html += `</div>`;
     return html;
