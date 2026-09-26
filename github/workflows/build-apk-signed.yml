@@ -40,7 +40,7 @@ jobs:
           cd android
           ./gradlew assembleRelease
 
-              - name: Decode signing keystore
+      - name: Decode signing keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/aziz-release.keystore
 
       - name: Check keystore alias
