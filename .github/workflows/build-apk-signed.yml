@@ -50,17 +50,25 @@ jobs:
 
       - name: Get keystore alias
         run: |
+          echo "Checking keystore..."
+
           ALIAS=$(keytool -list \
             -keystore android/aziz-release.keystore \
             -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
-            -v | grep "Alias name:" | head -1 | sed 's/.*Alias name: //')
+            -rfc 2>/dev/null | \
+            awk -F'alias name: ' '/alias name: / {print $2; exit}' | \
+            tr -d '\r')
 
           if [ -z "$ALIAS" ]; then
-            echo "ERROR: Could not find keystore alias."
+            echo "Could not automatically determine the keystore alias."
+            echo "Available keystore entries:"
+            keytool -list \
+              -keystore android/aziz-release.keystore \
+              -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
             exit 1
           fi
 
-          echo "Keystore alias: $ALIAS"
+          echo "Keystore alias found."
           echo "KEYSTORE_ALIAS=$ALIAS" >> "$GITHUB_ENV"
 
       - name: Sign the APK
