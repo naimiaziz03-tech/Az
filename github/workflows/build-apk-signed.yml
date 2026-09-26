@@ -58,3 +58,10 @@ jobs:
         with:
           name: aziz-attendance-apk
           path: android/app/build/outputs/apk/release/app-release-signed.apk
+          
+- name: Check keystore alias
+  run: |
+    keytool -list -v \
+      -keystore android/aziz-release.keystore \
+      -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
+      | grep "Alias name"
