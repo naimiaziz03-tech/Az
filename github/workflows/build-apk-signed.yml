@@ -41,7 +41,15 @@ jobs:
           ./gradlew assembleRelease
 
       - name: Decode signing keystore
+              - name: Decode signing keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/aziz-release.keystore
+
+      - name: Check keystore alias
+        run: |
+          keytool -list -v \
+            -keystore android/aziz-release.keystore \
+            -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
+            | grep "Alias name"
 
       - name: Sign the APK
         run: |
@@ -52,16 +60,3 @@ jobs:
             --key-pass pass:${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \
             --out android/app/build/outputs/apk/release/app-release-signed.apk \
             android/app/build/outputs/apk/release/app-release-unsigned.apk
-
-      - name: Upload signed APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: aziz-attendance-apk
-          path: android/app/build/outputs/apk/release/app-release-signed.apk
-          
-- name: Check keystore alias
-  run: |
-    keytool -list -v \
-      -keystore android/aziz-release.keystore \
-      -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
-      | grep "Alias name"
