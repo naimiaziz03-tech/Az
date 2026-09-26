@@ -48,12 +48,16 @@ jobs:
       - name: Decode signing keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/aziz-release.keystore
 
-      - name: Check keystore alias
+      - name: Get keystore alias
         run: |
-          keytool -list \
+          ALIAS=$(keytool -list \
             -keystore android/aziz-release.keystore \
-            -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
-  
+            -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
+            -v | grep "Alias name:" | head -1 | sed 's/.*Alias name: //')
+
+          echo "Keystore alias: $ALIAS"
+          echo "KEYSTORE_ALIAS=$ALIAS" >> "$GITHUB_ENV"
+
       - name: Sign the APK
         run: |
           $ANDROID_HOME/build-tools/*/apksigner sign \
