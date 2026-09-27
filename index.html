@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Attendance</title>
+<title>سجلّ الحضور — عزيز</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@700;800&display=swap');
 
@@ -227,6 +227,10 @@
   let expandedDate = null;
   let showDataModal = false;
   let confirmClear = false;
+  let showBackupBox = false;
+  let showRestoreBox = false;
+  let restoreText = "";
+  let restoreMessage = "";
   let viewMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
   let savedFlashTimer = null;
   let showFlash = false;
@@ -335,7 +339,7 @@
   function monthlyCheckpointDates() {
     return Object.keys(checkpoints)
       .filter((d) => d.startsWith(viewMonth) && (checkpoints[d] || []).some(Boolean))
-      .sort();
+      .sort((a, b) => (a < b ? 1 : -1));
   }
   function monthlyTotal() {
     return monthlyCheckpointDates().reduce((sum, d) => sum + computeDayTotal(checkpoints[d]), 0);
@@ -407,6 +411,64 @@
     render();
   }
 
+  function buildBackupJSON() {
+    return JSON.stringify({
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      records,
+      checkpoints,
+      notes,
+      workHours,
+      overtimeRate,
+    }, null, 2);
+  }
+
+  function toggleBackupBox() {
+    showBackupBox = !showBackupBox;
+    if (showBackupBox) showRestoreBox = false;
+    render();
+  }
+
+  function toggleRestoreBox() {
+    showRestoreBox = !showRestoreBox;
+    if (showRestoreBox) showBackupBox = false;
+    restoreMessage = "";
+    render();
+  }
+
+  function setRestoreText(text) {
+    restoreText = text;
+  }
+
+  function restoreFromBackup() {
+    let parsed;
+    try {
+      parsed = JSON.parse(restoreText);
+    } catch (e) {
+      restoreMessage = "❌ النص المُلصق ليس نسخة صالحة (تأكد من نسخ كل النص كاملاً).";
+      render();
+      return;
+    }
+    if (!parsed || typeof parsed !== "object") {
+      restoreMessage = "❌ النص المُلصق ليس نسخة صالحة.";
+      render();
+      return;
+    }
+    records = parsed.records && typeof parsed.records === "object" ? parsed.records : {};
+    checkpoints = parsed.checkpoints && typeof parsed.checkpoints === "object" ? parsed.checkpoints : {};
+    notes = parsed.notes && typeof parsed.notes === "object" ? parsed.notes : {};
+    workHours = parsed.workHours && typeof parsed.workHours === "object" ? parsed.workHours : {};
+    overtimeRate = parsed.overtimeRate && typeof parsed.overtimeRate === "object" ? parsed.overtimeRate : {};
+    saveJSON("aziz-attendance-records", records);
+    saveJSON("aziz-checkpoints", checkpoints);
+    saveJSON("aziz-notes", notes);
+    saveJSON("aziz-work-hours", workHours);
+    saveJSON("aziz-overtime-rate", overtimeRate);
+    restoreMessage = "✓ تم استرجاع البيانات بنجاح.";
+    restoreText = "";
+    render();
+  }
+
   // ---------- render ----------
   function render() {
     const app = document.getElementById("app");
@@ -460,10 +522,11 @@
           }).join("")}
           <input type="text" value="${(notes[selectedDate] || "").replace(/"/g, "&quot;")}"
             placeholder="إدخال معلومات..."
-            oninput="App.saveDataInput(this.value)"
+            dir="rtl"
+            oninput="App.saveDataInput(this.value); this.setSelectionRange(this.value.length, this.value.length); this.scrollLeft = this.scrollWidth;"
             onblur="App.refresh()"
             class="status-btn active-DATA-input"
-            style="width:112px;height:64px;font-family:inherit;font-size:12px;font-weight:500;text-align:center;background:${currentStatus === "DATA" ? "#F1EAF8" : "#fff"};color:${currentStatus === "DATA" ? "#8A5FB0" : "#5B6470"};border-color:${currentStatus === "DATA" ? "#8A5FB0" : "#E4E6DF"};" />
+            style="width:112px;height:64px;font-family:inherit;font-size:12px;font-weight:500;text-align:right;background:${currentStatus === "DATA" ? "#F1EAF8" : "#fff"};color:${currentStatus === "DATA" ? "#8A5FB0" : "#5B6470"};border-color:${currentStatus === "DATA" ? "#8A5FB0" : "#E4E6DF"};" />
         </div>
         <div class="saved-flash ${showFlash ? "show" : ""}">تم الحفظ ✓</div>
         <div class="cp-section">
@@ -692,6 +755,31 @@
           </div>
           <div class="modal-foot">
             <p style="margin-bottom:10px;">مفتاح التخزين: <code>aziz-attendance-records</code> / <code>aziz-checkpoints</code></p>
+
+            <button onclick="App.toggleBackupBox()" style="width:100%;padding:8px;border-radius:8px;border:none;background:#E7F1EC;color:#3C7A5D;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;margin-bottom:8px;">
+              ${showBackupBox ? "إخفاء نسخة الاحتياط" : "📤 تصدير نسخة احتياطية"}
+            </button>
+            ${showBackupBox ? `
+              <div style="margin-bottom:10px;">
+                <p style="font-size:11px;color:#5B6470;margin:0 0 6px;">انسخ كل النص أدناه (اضغط عليه مطولًا ← تحديد الكل ← نسخ) واحفظه في تطبيق الملاحظات قبل أي تحديث:</p>
+                <textarea readonly onclick="this.select()" style="width:100%;height:120px;font-size:10px;font-family:monospace;border:1px solid #D7DAD3;border-radius:8px;padding:8px;direction:ltr;">${buildBackupJSON()}</textarea>
+              </div>
+            ` : ""}
+
+            <button onclick="App.toggleRestoreBox()" style="width:100%;padding:8px;border-radius:8px;border:none;background:#EAF0F8;color:#4A6FA5;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;margin-bottom:8px;">
+              ${showRestoreBox ? "إخفاء الاسترجاع" : "📥 استرجاع نسخة احتياطية"}
+            </button>
+            ${showRestoreBox ? `
+              <div style="margin-bottom:10px;">
+                <p style="font-size:11px;color:#5B6470;margin:0 0 6px;">الصق النص المحفوظ هنا:</p>
+                <textarea onchange="App.setRestoreText(this.value)" placeholder="الصق نص النسخة الاحتياطية هنا..." style="width:100%;height:100px;font-size:10px;font-family:monospace;border:1px solid #D7DAD3;border-radius:8px;padding:8px;direction:ltr;margin-bottom:6px;"></textarea>
+                <button onclick="App.restoreFromBackup()" style="width:100%;padding:8px;border-radius:8px;border:none;background:#4A6FA5;color:#fff;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">
+                  استرجاع الآن
+                </button>
+                ${restoreMessage ? `<p style="font-size:11px;margin:6px 0 0;color:${restoreMessage.startsWith("✓") ? "#3C7A5D" : "#B5473F"};">${restoreMessage}</p>` : ""}
+              </div>
+            ` : ""}
+
             <button onclick="App.clearAllData()" style="width:100%;padding:8px;border-radius:8px;border:none;background:#FBEAE8;color:#B5473F;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">
               ${confirmClear ? "اضغط للتأكيد — لا يمكن التراجع" : "مسح جميع البيانات المخزّنة"}
             </button>
@@ -729,8 +817,12 @@
     toggleDate(d) { expandedDate = expandedDate === d ? null : d; render(); },
     toggleHoursMonth(m) { expandedHoursMonth = expandedHoursMonth === m ? null : m; render(); },
     openModal() { showDataModal = true; render(); },
-    closeModal(e) { if (e && e.target !== e.currentTarget) return; showDataModal = false; confirmClear = false; render(); },
+    closeModal(e) { if (e && e.target !== e.currentTarget) return; showDataModal = false; confirmClear = false; showBackupBox = false; showRestoreBox = false; restoreMessage = ""; render(); },
     clearAllData() { clearAllData(); },
+    toggleBackupBox() { toggleBackupBox(); },
+    toggleRestoreBox() { toggleRestoreBox(); },
+    setRestoreText(text) { setRestoreText(text); },
+    restoreFromBackup() { restoreFromBackup(); },
   };
 
   render();
