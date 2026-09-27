@@ -1,1 +1,81 @@
+name: Build Signed APK
 
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify required project files exist
+        run: |
+          echo "Repository root contents:"
+          ls -la
+          echo "www contents:"
+          ls -la www || echo "WARNING: www folder does not exist at repo root"
+          if [ ! -f "www/index.html" ]; then
+            echo "ERROR: www/index.html was not found. Make sure index.html is committed at the exact path www/index.html in the repository root."
+            exit 1
+          fi
+          if [ ! -f "package.json" ]; then
+            echo "ERROR: package.json was not found at the repository root."
+            exit 1
+          fi
+          if [ ! -f "capacitor.config.json" ]; then
+            echo "ERROR: capacitor.config.json was not found at the repository root."
+            exit 1
+          fi
+          echo "All required files found."
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Sync web assets
+        run: npx cap sync android
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x android/gradlew
+
+      - name: Build unsigned release APK
+        run: |
+          cd android
+          ./gradlew assembleRelease
+
+      - name: Decode signing keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | tr -d ' \t\r\n' > /tmp/keystore.b64
+          base64 --decode --ignore-garbage /tmp/keystore.b64 > android/aziz-release.keystore
+          if [ ! -s android/aziz-release.keystore ]; then
+            echo "ERROR: Decoded keystore is empty. Check that the ANDROID_KEYSTORE_BASE64 secret was pasted completely and with no extra characters."
+            exit 1
+          fi
+
+      - name: Sign the APK
+        run: |
+          BUILD_TOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -n 1)
+          $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner sign --ks android/aziz-release.keystore --ks-pass pass:${{ secrets.ANDROID_KEYSTORE_PASSWORD }} --ks-key-alias aziz-attendance --key-pass pass:${{ secrets.ANDROID_KEYSTORE_PASSWORD }} --out android/app/build/outputs/apk/release/app-release-signed.apk android/app/build/outputs/apk/release/app-release-unsigned.apk
+
+      - name: Upload signed APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aziz-attendance-apk
+          path: android/app/build/outputs/apk/release/app-release-signed.apk
