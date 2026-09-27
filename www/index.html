@@ -339,7 +339,7 @@
   function monthlyCheckpointDates() {
     return Object.keys(checkpoints)
       .filter((d) => d.startsWith(viewMonth) && (checkpoints[d] || []).some(Boolean))
-      .sort();
+      .sort((a, b) => (a < b ? 1 : -1));
   }
   function monthlyTotal() {
     return monthlyCheckpointDates().reduce((sum, d) => sum + computeDayTotal(checkpoints[d]), 0);
@@ -522,10 +522,11 @@
           }).join("")}
           <input type="text" value="${(notes[selectedDate] || "").replace(/"/g, "&quot;")}"
             placeholder="إدخال معلومات..."
-            oninput="App.saveDataInput(this.value)"
+            dir="rtl"
+            oninput="App.saveDataInput(this.value); this.setSelectionRange(this.value.length, this.value.length); this.scrollLeft = this.scrollWidth;"
             onblur="App.refresh()"
             class="status-btn active-DATA-input"
-            style="width:112px;height:64px;font-family:inherit;font-size:12px;font-weight:500;text-align:center;background:${currentStatus === "DATA" ? "#F1EAF8" : "#fff"};color:${currentStatus === "DATA" ? "#8A5FB0" : "#5B6470"};border-color:${currentStatus === "DATA" ? "#8A5FB0" : "#E4E6DF"};" />
+            style="width:112px;height:64px;font-family:inherit;font-size:12px;font-weight:500;text-align:right;background:${currentStatus === "DATA" ? "#F1EAF8" : "#fff"};color:${currentStatus === "DATA" ? "#8A5FB0" : "#5B6470"};border-color:${currentStatus === "DATA" ? "#8A5FB0" : "#E4E6DF"};" />
         </div>
         <div class="saved-flash ${showFlash ? "show" : ""}">تم الحفظ ✓</div>
         <div class="cp-section">
