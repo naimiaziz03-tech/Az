@@ -49,6 +49,18 @@ jobs:
       - name: Add Android platform
         run: npx cap add android
 
+      - name: Generate app icons
+        run: |
+          mkdir -p assets
+          for f in icon-only.png icon-foreground.png icon-background.png; do
+            if [ -f "$f" ] && [ ! -f "assets/$f" ]; then cp "$f" "assets/$f"; fi
+          done
+          if [ -f "assets/icon-only.png" ]; then
+            npx capacitor-assets generate --android
+          else
+            echo "No icon files found, keeping the default icon"
+          fi
+
       - name: Sync web assets
         run: npx cap sync android
 
