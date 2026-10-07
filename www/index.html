@@ -417,70 +417,6 @@
     render();
   }
 
-  function allMonthsPresent() {
-    const keys = new Set();
-    Object.keys(records).forEach((d) => keys.add(d.slice(0, 7)));
-    Object.keys(checkpoints).forEach((d) => keys.add(d.slice(0, 7)));
-    Object.keys(workHours).forEach((d) => keys.add(d.slice(0, 7)));
-    return Array.from(keys).sort();
-  }
-
-  function exportExcel() {
-    if (typeof XLSX === "undefined") {
-      alert("تعذّر تحميل أداة التصدير. تأكد من اتصالك بالإنترنت وحاول مجددًا.");
-      return;
-    }
-    const months = allMonthsPresent();
-    if (months.length === 0) {
-      alert("لا توجد بيانات لتصديرها بعد.");
-      return;
-    }
-    const wb = XLSX.utils.book_new();
-    months.forEach((month) => {
-      const allDates = new Set();
-      Object.keys(records).filter((d) => d.startsWith(month)).forEach((d) => allDates.add(d));
-      Object.keys(checkpoints).filter((d) => d.startsWith(month) && (checkpoints[d] || []).some(Boolean)).forEach((d) => allDates.add(d));
-      Object.keys(workHours).filter((d) => d.startsWith(month) && workHours[d] && workHours[d].start && workHours[d].end).forEach((d) => allDates.add(d));
-      const sortedMonthDates = Array.from(allDates).sort();
-
-      const rows = sortedMonthDates.map((date) => {
-        const status = records[date] || "";
-        const statusLabel = status === "DATA" ? "بيانات" : status;
-        const dataText = status === "DATA" ? (notes[date] || "") : "";
-        const dc = checkpoints[date] || [];
-        const cpTotal = computeDayTotal(dc);
-        const cpDetail = dc.map((a, i) => (a ? i + 1 : null)).filter((v) => v !== null).join(",");
-        const wh = workHours[date];
-        const hasHours = wh && wh.start && wh.end;
-        const rateKey = overtimeRate[date];
-        const rateVal = rateKey ? RATES[rateKey] : "";
-        const result = hasHours || status === "RC" ? dayResult(date).toFixed(2) : "";
-        return {
-          "التاريخ": date,
-          "اليوم": formatArabicDate(date),
-          "الحالة": statusLabel,
-          "بيانات مُدخلة": dataText,
-          "نقاط التحقق": cpDetail,
-          "مجموع النقاط": cpTotal || "",
-          "من": hasHours ? wh.start : "",
-          "إلى": hasHours ? wh.end : "",
-          "مدة العمل": hasHours ? formatDiff(wh.start, wh.end) : "",
-          "النسبة": rateVal,
-          "الناتج": result,
-        };
-      });
-
-      const ws = XLSX.utils.json_to_sheet(rows);
-      ws["!cols"] = [
-        { wch: 12 }, { wch: 22 }, { wch: 10 }, { wch: 24 }, { wch: 12 },
-        { wch: 12 }, { wch: 8 }, { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 10 },
-      ];
-      const sheetName = month; // "YYYY-MM" is always safe as an Excel sheet name
-      XLSX.utils.book_append_sheet(wb, ws, sheetName);
-    });
-    XLSX.writeFile(wb, "سجل-حضور-عزيز.xlsx");
-  }
-
   function buildBackupJSON() {
     return JSON.stringify({
       version: 1,
@@ -609,8 +545,46 @@
       XLSX.utils.book_append_sheet(wb, ws, sanitizeSheetName(monthLabel));
     });
 
-    XLSX.writeFile(wb, "سجل-حضور-عزيز.xlsx");
-    exportMessage = "✓ تم تجهيز ملف Excel للتحميل.";
+    saveWorkbookFile(wb, "سجل-حضور-عزيز.xlsx");
+  }
+
+  async function saveWorkbookFile(wb, filename) {
+    const isNative =
+      typeof Capacitor !== "undefined" &&
+      Capacitor.isNativePlatform &&
+      Capacitor.isNativePlatform() &&
+      Capacitor.Plugins &&
+      Capacitor.Plugins.Filesystem;
+
+    if (!isNative) {
+      // Regular browser (GitHub Pages, Chrome, Safari): normal file download works fine.
+      XLSX.writeFile(wb, filename);
+      exportMessage = "✓ تم تحميل ملف Excel.";
+      render();
+      return;
+    }
+
+    // Installed native app: a plain browser download is unreliable inside a WebView,
+    // so write the file to the device via the Filesystem plugin, then open the
+    // native Share sheet so the person can save it to Files / Drive / send it.
+    try {
+      const base64 = XLSX.write(wb, { bookType: "xlsx", type: "base64" });
+      const { Filesystem, Share } = Capacitor.Plugins;
+      await Filesystem.writeFile({
+        path: filename,
+        data: base64,
+        directory: "CACHE",
+      });
+      const uriResult = await Filesystem.getUri({ path: filename, directory: "CACHE" });
+      await Share.share({
+        title: filename,
+        url: uriResult.uri,
+      });
+      exportMessage = "✓ تم تجهيز ملف Excel — احفظه من قائمة المشاركة.";
+    } catch (e) {
+      console.error("Excel save failed", e);
+      exportMessage = "❌ تعذّر حفظ الملف على الجهاز. جرّب فتح التطبيق من المتصفح بدلاً من ذلك.";
+    }
     render();
   }
 
@@ -907,9 +881,10 @@
           <div class="modal-foot">
             <p style="margin-bottom:10px;">مفتاح التخزين: <code>aziz-attendance-records</code> / <code>aziz-checkpoints</code></p>
 
-            <button onclick="App.exportExcel()" style="width:100%;padding:8px;border-radius:8px;border:none;background:#0B4F4C;color:#fff;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;margin-bottom:8px;">
+            <button onclick="App.exportExcel()" style="width:100%;padding:8px;border-radius:8px;border:none;background:#0B4F4C;color:#fff;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;margin-bottom:6px;">
               📊 تصدير ملف Excel (كل الأشهر)
             </button>
+            ${exportMessage ? `<p style="font-size:11px;margin:0 0 8px;color:${exportMessage.startsWith("✓") ? "#3C7A5D" : "#B5473F"};">${exportMessage}</p>` : ""}
 
             <button onclick="App.toggleBackupBox()" style="width:100%;padding:8px;border-radius:8px;border:none;background:#E7F1EC;color:#3C7A5D;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;margin-bottom:8px;">
               ${showBackupBox ? "إخفاء نسخة الاحتياط" : "📤 تصدير نسخة احتياطية (نص)"}
@@ -972,7 +947,7 @@
     toggleDate(d) { expandedDate = expandedDate === d ? null : d; render(); },
     toggleHoursMonth(m) { expandedHoursMonth = expandedHoursMonth === m ? null : m; render(); },
     openModal() { showDataModal = true; render(); },
-    closeModal(e) { if (e && e.target !== e.currentTarget) return; showDataModal = false; confirmClear = false; showBackupBox = false; showRestoreBox = false; restoreMessage = ""; render(); },
+    closeModal(e) { if (e && e.target !== e.currentTarget) return; showDataModal = false; confirmClear = false; showBackupBox = false; showRestoreBox = false; restoreMessage = ""; exportMessage = ""; render(); },
     clearAllData() { clearAllData(); },
     toggleBackupBox() { toggleBackupBox(); },
     toggleRestoreBox() { toggleRestoreBox(); },
