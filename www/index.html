@@ -231,7 +231,6 @@
   let expandedHoursMonth = null;
   let expandedDate = null;
   let showDataModal = false;
-  let confirmClear = false;
   let showBackupBox = false;
   let showRestoreBox = false;
   let restoreText = "";
@@ -393,27 +392,6 @@
     if (overtimeRate[date] === rateKey) delete overtimeRate[date];
     else overtimeRate[date] = rateKey;
     saveJSON("aziz-overtime-rate", overtimeRate);
-    render();
-  }
-
-  function clearAllData() {
-    if (!confirmClear) {
-      confirmClear = true;
-      render();
-      return;
-    }
-    records = {};
-    checkpoints = {};
-    notes = {};
-    workHours = {};
-    overtimeRate = {};
-    saveJSON("aziz-attendance-records", records);
-    saveJSON("aziz-checkpoints", checkpoints);
-    saveJSON("aziz-notes", notes);
-    saveJSON("aziz-work-hours", workHours);
-    saveJSON("aziz-overtime-rate", overtimeRate);
-    confirmClear = false;
-    showDataModal = false;
     render();
   }
 
@@ -910,9 +888,6 @@
               </div>
             ` : ""}
 
-            <button onclick="App.clearAllData()" style="width:100%;padding:8px;border-radius:8px;border:none;background:#FBEAE8;color:#B5473F;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">
-              ${confirmClear ? "اضغط للتأكيد — لا يمكن التراجع" : "مسح جميع البيانات المخزّنة"}
-            </button>
           </div>
         </div>
       </div>
@@ -947,8 +922,7 @@
     toggleDate(d) { expandedDate = expandedDate === d ? null : d; render(); },
     toggleHoursMonth(m) { expandedHoursMonth = expandedHoursMonth === m ? null : m; render(); },
     openModal() { showDataModal = true; render(); },
-    closeModal(e) { if (e && e.target !== e.currentTarget) return; showDataModal = false; confirmClear = false; showBackupBox = false; showRestoreBox = false; restoreMessage = ""; exportMessage = ""; render(); },
-    clearAllData() { clearAllData(); },
+    closeModal(e) { if (e && e.target !== e.currentTarget) return; showDataModal = false; showBackupBox = false; showRestoreBox = false; restoreMessage = ""; exportMessage = ""; render(); },
     toggleBackupBox() { toggleBackupBox(); },
     toggleRestoreBox() { toggleRestoreBox(); },
     exportExcel() { exportExcel(); },
